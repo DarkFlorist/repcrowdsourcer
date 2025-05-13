@@ -1,0 +1,9 @@
+/node_modules
+/solidity/artifacts
+/solidity/node_modules
+/app/vendor
+/app/js
+app/ts/VendoredAugurConstantProductMarket.ts
+/solidity/js
+solidity/user-config.json
+solidity/ts/abi/VendoredAugurConstantProductMarket.ts
