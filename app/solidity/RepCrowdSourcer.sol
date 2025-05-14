@@ -2,11 +2,8 @@
 pragma solidity 0.8.29;
 
 interface IERC20 {
-    function totalSupply() external view returns (uint256);
     function balanceOf(address account) external view returns (uint256);
     function transfer(address to, uint256 value) external returns (bool);
-    function allowance(address owner, address spender) external view returns (uint256);
-    function approve(address spender, uint256 value) external returns (bool);
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
@@ -47,7 +44,7 @@ contract RepCrowdSourcer {
 		require(contractClosed, 'Contract needs to be closed');
 		for (uint256 i = 0; i < recipients.length; ++i) {
 			uint256 amount = deposits[recipients[i]];
-            deposits[recipients[i]] = 0;
+			deposits[recipients[i]] = 0;
 			repV2.transfer(recipients[i], amount);
 			emit Withdraw(recipients[i], amount);
 		}

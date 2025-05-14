@@ -1,5 +1,5 @@
 {
-	"description": "Augur-Constant-Product-Market",
+	"description": "rep-crowdsourcer",
 	"repository": {},
 	"license": "Unlicense",
 	"type": "module",
@@ -18,7 +18,6 @@
 	"scripts": {
 		"setup": "npm ci --ignore-scripts && npm run contracts && npm run vendor && npm run build",
 		"contracts": "cd solidity && npm ci --ignore-scripts && npm run compile && cd .. && npm run vendor",
-		"generateHookSalt": "cd solidity && npm run generateHookSalt",
 		"test": "cd solidity && npm run test",
 		"build": "tsc",
 		"watch": "tsc --watch",
