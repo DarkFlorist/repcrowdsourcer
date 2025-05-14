@@ -3,7 +3,6 @@ import { createReadClient, createWriteClient, getAccounts, ReadClient, requestAc
 import { OptionalSignal, useOptionalSignal } from './utils/OptionalSignal.js'
 import { addressString, bigintToDecimalString, bigintToDecimalStringWithUnknown, bigintToDecimalStringWithUnknownAndPracticallyInfinite, decimalStringToBigint, getEthereumBalance, isDecimalString } from './utils/ethereumUtils.js'
 import { getChainId } from 'viem/actions'
-import { AccountAddress, EthereumAddress, EthereumQuantity } from './types/types.js'
 import { useEffect } from 'preact/hooks'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
 import { approveErc20Token, getAllowanceErc20Token, getErc20TokenBalance } from './utils/erc20.js'
@@ -11,6 +10,8 @@ import { deposit, getBalance, getContractClosed, getMicahAddress, getMinBalanceT
 import { Input } from './utils/Input.js'
 import { printError } from './utils/misc.js'
 import { UnexpectedError } from './utils/error.js'
+import { AccountAddress } from './types/types.js'
+import { ethereumAddressSafeParse } from './utils/bigint.js'
 
 interface WalletComponentProps {
 	maybeReadClient: OptionalSignal<ReadClient>
@@ -23,7 +24,7 @@ interface WalletComponentProps {
 const WalletComponent = ({ maybeReadClient, maybeWriteClient, loadingAccount, account, children }: WalletComponentProps) => {
 	if (loadingAccount.value) return <></>
 	const connect = async () => {
-		updateWalletSignals(maybeReadClient, maybeWriteClient, await requestAccounts())
+		updateWalletSignals(maybeReadClient, maybeWriteClient, account, await requestAccounts())
 	}
 	return <div class = 'wallet-container'>
 		{ account.deepValue !== undefined ? <>
@@ -40,8 +41,8 @@ const WalletComponent = ({ maybeReadClient, maybeWriteClient, loadingAccount, ac
 }
 
 interface WalletBalancesProps {
-	repBalance: OptionalSignal<EthereumQuantity>
-	ethBalance: OptionalSignal<EthereumQuantity>
+	repBalance: OptionalSignal<bigint>
+	ethBalance: OptionalSignal<bigint>
 }
 
 const WalletBalances = ({ repBalance, ethBalance }: WalletBalancesProps) => {
@@ -55,9 +56,10 @@ const WalletBalances = ({ repBalance, ethBalance }: WalletBalancesProps) => {
 	</div>
 }
 
-const updateWalletSignals = (maybeReadClient: OptionalSignal<ReadClient>, maybeWriteClient: OptionalSignal<WriteClient>, account: AccountAddress | undefined) => {
-	maybeReadClient.deepValue = account === undefined ? createReadClient(undefined) : createWriteClient(account)
-	maybeWriteClient.deepValue = account === undefined ? undefined : createWriteClient(account)
+const updateWalletSignals = (maybeReadClient: OptionalSignal<ReadClient>, maybeWriteClient: OptionalSignal<WriteClient>, account: OptionalSignal<AccountAddress>, newAccount: AccountAddress | undefined) => {
+	maybeReadClient.deepValue = newAccount === undefined ? createReadClient(undefined) : createWriteClient(newAccount)
+	maybeWriteClient.deepValue = newAccount === undefined ? undefined : createWriteClient(newAccount)
+	account.deepValue = newAccount
 }
 
 interface AllowancesProps {
@@ -114,7 +116,7 @@ export const Allowances = ( { maybeWriteClient, allowedRep, handleUnexpectedErro
 						const parsed = decimalStringToBigint(amount.trim(), 18n)
 						return { ok: true, value: parsed } as const
 					}}
-					serialize = { (amount: EthereumQuantity | undefined) => {
+					serialize = { (amount: bigint | undefined) => {
 						if (amount === undefined) return ''
 						return bigintToDecimalString(amount, 18n, 18)
 					}}
@@ -138,18 +140,18 @@ export function App() {
 	const chainId = useSignal<number | undefined>(undefined)
 	const account = useOptionalSignal<AccountAddress>(undefined)
 
-	const ethBalance = useOptionalSignal<EthereumQuantity>(undefined)
-	const repBalance = useOptionalSignal<EthereumQuantity>(undefined)
+	const ethBalance = useOptionalSignal<bigint>(undefined)
+	const repBalance = useOptionalSignal<bigint>(undefined)
 	const micahAddress = useOptionalSignal<AccountAddress>(undefined)
-	const totalBalance = useOptionalSignal<EthereumQuantity>(undefined)
-	const requiredBalance = useOptionalSignal<EthereumQuantity>(undefined)
-	const ourBalance = useOptionalSignal<EthereumQuantity>(undefined)
+	const totalBalance = useOptionalSignal<bigint>(undefined)
+	const requiredBalance = useOptionalSignal<bigint>(undefined)
+	const ourBalance = useOptionalSignal<bigint>(undefined)
 	const contractClosed = useOptionalSignal<boolean>(undefined)
 	const repCrowdSourcerAddress = useSignal<AccountAddress>(getRepCrowdSourcerAddress())
-	const allowedRep = useOptionalSignal<EthereumQuantity>(undefined)
+	const allowedRep = useOptionalSignal<bigint>(undefined)
 
-	const depositRepInput = useOptionalSignal<EthereumQuantity>(undefined)
-	const withdrawRepInput = useOptionalSignal<EthereumQuantity>(undefined)
+	const depositRepInput = useOptionalSignal<bigint>(undefined)
+	const withdrawRepInput = useOptionalSignal<bigint>(undefined)
 	const withdrawAddreses = useOptionalSignal<AccountAddress[]>(undefined)
 
 	const unexpectedError = useOptionalSignal<string>(undefined)
@@ -167,6 +169,10 @@ export function App() {
 		if (readClient === undefined) return
 		chainId.value = await getChainId(readClient)
 	}
+	useSignalEffect(() => {
+		account.value
+		updateChainId()
+	})
 
 	const fundedPercentageString = useComputed(() => {
 		if (requiredBalance.deepValue === undefined) return '?%'
@@ -180,17 +186,14 @@ export function App() {
 			return
 		}
 		isWindowEthereum.value = true
-		window.ethereum.on('accountsChanged', (accounts) => {
-			updateWalletSignals(maybeReadClient, maybeWriteClient, accounts[0])
-			account.deepValue = accounts[0]
-		})
+		window.ethereum.on('accountsChanged', (accounts) => updateWalletSignals(maybeReadClient, maybeWriteClient, account, accounts[0]))
 		window.ethereum.on('chainChanged', async () => { updateChainId() })
 		const fetchAccount = async () => {
+			console.log('fetchaccount')
 			try {
 				loadingAccount.value = true
 				const fetchedAccount = await getAccounts()
-				updateWalletSignals(maybeReadClient, maybeWriteClient, fetchedAccount)
-				account.deepValue = fetchedAccount
+				updateWalletSignals(maybeReadClient, maybeWriteClient, account, fetchedAccount)
 				updateChainId()
 			} catch(e) {
 				handleUnexpectedError(e)
@@ -204,40 +207,43 @@ export function App() {
 	const deploy = async () => {
 		const writeClient = maybeWriteClient.deepPeek()
 		if (writeClient === undefined) throw new Error('writeClient missing')
+		if (chainId.value !== 1) throw new Error('wrong netwrok')
 		await deployRepCrowdsourcer(writeClient)
 		isDeployed.deepValue = true
 	}
 
-	const updateTokenBalances = async (writeClient: WriteClient | undefined) => {
+	const updateTokenBalances = async (writeClient: WriteClient | undefined, chainId: number | undefined) => {
 		if (writeClient === undefined) return
 		if (account.deepValue === undefined) return
+		if (chainId !== 1) return
 		const ethPromise = getEthereumBalance(writeClient, account.deepValue)
 		repBalance.deepValue = await getErc20TokenBalance(writeClient, repV2TokenAddress, account.deepValue)
 		ethBalance.deepValue = await ethPromise
 	}
-	useSignalEffect(() => { updateTokenBalances(maybeWriteClient.deepValue).catch(handleUnexpectedError) })
+	useSignalEffect(() => { updateTokenBalances(maybeWriteClient.deepValue, chainId.value).catch(handleUnexpectedError) })
 
-	const checkIfDeployed = async (readClient: ReadClient | undefined) => {
+	const checkIfDeployed = async (readClient: ReadClient | undefined, chainId: number | undefined) => {
 		if (readClient === undefined) return
+		if (chainId !== 1) return
 		isDeployed.deepValue = await isRepCrowdSourcerDeployed(readClient)
 	}
 
-	useSignalEffect(() => { checkIfDeployed(maybeReadClient.deepValue).catch(handleUnexpectedError) })
+	useSignalEffect(() => { checkIfDeployed(maybeReadClient.deepValue, chainId.value).catch(handleUnexpectedError) })
 
-	const refresh = async (writeClient: WriteClient | undefined, isDeployed: boolean | undefined) => {
+	const refresh = async (writeClient: WriteClient | undefined, isDeployed: boolean | undefined, chainId: number | undefined) => {
 		if (writeClient === undefined) return
 		if (account.deepValue === undefined) return
-		allowedRep.deepValue = await getAllowanceErc20Token(writeClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())
 		if (isDeployed !== true) return
+		allowedRep.deepValue = await getAllowanceErc20Token(writeClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())
 		micahAddress.deepValue = await getMicahAddress(writeClient)
 		totalBalance.deepValue = await getTotalBalance(writeClient)
 		requiredBalance.deepValue = await getMinBalanceToWithdraw(writeClient)
 		contractClosed.deepValue = await getContractClosed(writeClient)
 		ourBalance.deepValue = await getBalance(writeClient, account.deepValue)
-		await updateTokenBalances(writeClient)
+		await updateTokenBalances(writeClient, chainId)
 	}
-	const forceRefresh = () => refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
-	useSignalEffect(() => { refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError) })
+	const forceRefresh = () => refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+	useSignalEffect(() => { refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError) })
 
 	const isMicah = useComputed(() => {
 		if (maybeWriteClient.deepValue === undefined) return false
@@ -249,6 +255,7 @@ export function App() {
 		if (isDeployed.deepValue !== true) return true
 		if (allowedRep.deepValue === undefined) return true
 		if (contractClosed.deepValue === true) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
@@ -260,6 +267,7 @@ export function App() {
 		if (depositRepInput.deepValue > allowedRep.deepValue) return true
 		if (depositRepInput.deepValue > repBalance.deepValue) return true
 		if (depositRepInput.deepValue === 0n) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
@@ -267,6 +275,7 @@ export function App() {
 		if (isDeployed.deepValue !== true) return true
 		if (ourBalance.deepValue === undefined) return true
 		if (ourBalance.deepValue <= 0n) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
@@ -274,18 +283,21 @@ export function App() {
 		if (withdrawInputDisabled.value) return true
 		if (withdrawRepInput.deepValue === undefined) return true
 		if (withdrawRepInput.deepValue <= 0n) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
 	const massWithdrawInputDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
 		if (contractClosed.deepValue !== true) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 	const massWithdrawButtonDisabled = useComputed(() => {
 		if (massWithdrawInputDisabled.value) return true
 		if (withdrawAddreses.deepValue === undefined) return true
 		if (withdrawAddreses.deepValue.length === 0) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
@@ -293,6 +305,7 @@ export function App() {
 		if (isDeployed.deepValue !== true) return true
 		if (contractClosed.deepValue === true) return true
 		if (!isMicah.value) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 	const micahWithdrawDisabled = useComputed(() => {
@@ -300,6 +313,7 @@ export function App() {
 		if (totalBalance.deepValue === undefined) return true
 		if (requiredBalance.deepValue === undefined) return true
 		if (totalBalance.deepValue < requiredBalance.deepValue) return true
+		if (chainId.value !== 1) return true
 		return false
 	})
 
@@ -307,33 +321,33 @@ export function App() {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0) throw new Error('Deposit amount not set to non negative value')
 		await deposit(maybeWriteClient.deepValue, depositRepInput.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (withdrawRepInput.deepValue === undefined || withdrawRepInput.deepValue <= 0) throw new Error('Withdraw amount not set to non negative value')
 		await withdraw(maybeWriteClient.deepValue, withdrawRepInput.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonMassWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (withdrawAddreses.deepValue === undefined || withdrawAddreses.deepValue.length === 0) throw new Error('Withdraw amount not set to non negative value')
 		await massWithdraw(maybeWriteClient.deepValue, withdrawAddreses.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahCloseContract = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (isMicah.value !== true) throw new Error('you are not micah!')
 		await micahCloseContract(maybeWriteClient.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahWithdraw = async  () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (isMicah.value !== true) throw new Error('you are not micah!')
 		await micahWithdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	return <main style = 'overflow: auto;'>
@@ -345,7 +359,7 @@ export function App() {
 						<span>REP Crowdsourcer</span>
 					</div>
 				</div>
-				{ isDeployed.deepValue === false ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
+				{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
 				<div style = 'display: flex; align-items: center;'>
 					<WalletComponent loadingAccount = { loadingAccount } maybeReadClient = { maybeReadClient } maybeWriteClient = { maybeWriteClient } account = { account }>
 						<WalletBalances ethBalance = { ethBalance } repBalance = { repBalance }/>
@@ -355,6 +369,9 @@ export function App() {
 		</div>
 		<div class = 'main-window'>
 			<UnexpectedError close = { clearError } unexpectedError = { unexpectedError }/>
+			{ chainId.value !== undefined && chainId.value !== 1 ? <div class = 'warning-box'>
+				<p> Please switch to mainnet </p>
+			</div> : <></> }
 			<div class = 'form-grid'>
 				<div class = 'form-group'>
 					<h3>Contract Status</h3>
@@ -388,7 +405,7 @@ export function App() {
 								const parsed = decimalStringToBigint(amount.trim(), 18n)
 								return { ok: true, value: parsed } as const
 							}}
-							serialize = { (amount: EthereumQuantity | undefined) => {
+							serialize = { (amount: bigint | undefined) => {
 								if (amount === undefined) return ''
 								return bigintToDecimalString(amount, 18n, 18)
 							}}
@@ -415,7 +432,7 @@ export function App() {
 								const parsed = decimalStringToBigint(amount.trim(), 18n)
 								return { ok: true, value: parsed } as const
 							}}
-							serialize = { (amount: EthereumQuantity | undefined) => {
+							serialize = { (amount: bigint | undefined) => {
 								if (amount === undefined) return ''
 								return bigintToDecimalString(amount, 18n, 18)
 							}}
@@ -441,7 +458,7 @@ export function App() {
 							sanitize = { (addressString: string) => addressString }
 							tryParse = { (maybeStringSeparatedArray: string | undefined) => {
 								if (maybeStringSeparatedArray === undefined) return { ok: false } as const
-								const addresses = maybeStringSeparatedArray.split(',').map((element) => EthereumAddress.safeParse(element.trim()))
+								const addresses = maybeStringSeparatedArray.split(',').map((element) => ethereumAddressSafeParse(element.trim()))
 								const addressStrings = addresses.map((address) => address.success ? addressString(address.value) : undefined)
 								const validOnes = addressStrings.filter((address): address is `0x${ string }` => address !== undefined)
 								if (validOnes.length !== addressStrings.length) return { ok: false }

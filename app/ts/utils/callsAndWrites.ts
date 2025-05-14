@@ -1,5 +1,5 @@
 import { ERC20_ABI } from '../ABI/Erc20Abi.js'
-import { AccountAddress, EthereumQuantity } from '../types/types.js'
+import { AccountAddress } from '../types/types.js'
 import { RepCrowdsourcer } from '../VendoredRepCrowdsourcer.js'
 import { getRepCrowdSourcerAddress } from './deployment.js'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
@@ -51,7 +51,7 @@ export const getContractClosed = async (client: ReadClient) => {
 	})
 }
 
-export const deposit = async (client: WriteClient, amount: EthereumQuantity) => {
+export const deposit = async (client: WriteClient, amount: bigint) => {
 	return await client.writeContract({
 		abi: RepCrowdsourcer.abi,
 		functionName: 'deposit',
@@ -60,7 +60,7 @@ export const deposit = async (client: WriteClient, amount: EthereumQuantity) => 
 	})
 }
 
-export const withdraw = async (client: WriteClient, amount: EthereumQuantity) => {
+export const withdraw = async (client: WriteClient, amount: bigint) => {
 	return await client.writeContract({
 		abi: RepCrowdsourcer.abi,
 		functionName: 'withdraw',
