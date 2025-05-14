@@ -342,7 +342,7 @@ export function App() {
 				<div class = 'crowdsourcer-header'>
 					<img src = 'favicon.ico' alt = 'Icon' />
 					<div>
-						<span>REP Crowd Sourcer</span>
+						<span>REP Crowdsourcer</span>
 					</div>
 				</div>
 				{ isDeployed.deepValue === false ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }

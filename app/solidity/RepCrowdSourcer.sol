@@ -7,7 +7,7 @@ interface IERC20 {
     function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
-contract RepCrowdSourcer {
+contract RepCrowdsourcer {
 	IERC20 public repV2 = IERC20(0x221657776846890989a759BA2973e427DfF5C9bB);
 	address public micahAddress = 0x82c34Fdbc5c71B899F484e716BAD2271e2c6f0C3; // micah.darkflorist.eth VERIFY!
 	uint256 public minBalanceToWithdraw = 200000 ether;
