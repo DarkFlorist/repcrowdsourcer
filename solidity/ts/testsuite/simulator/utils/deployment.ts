@@ -1,6 +1,6 @@
 import { getContractAddress, numberToBytes } from 'viem'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
-import { RepCrowdsourcer } from '../VendoredRepCrowdsourcer.js'
+import { RepCrowdsourcer } from '../../../abi/VendoredRepCrowdsourcer.js'
 
 const PROXY_DEPLOYER_ADDRESS = '0x7a0d94f55792c434d74a40883c6ed8545e406d12'
 

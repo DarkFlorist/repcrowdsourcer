@@ -1,8 +1,9 @@
-import { ERC20_ABI } from '../ABI/Erc20Abi.js'
-import { AccountAddress, EthereumQuantity } from '../types/types.js'
-import { RepCrowdsourcer } from '../VendoredRepCrowdsourcer.js'
+import { ERC20_ABI } from '../../../abi/Erc20Abi.js'
+import { RepCrowdsourcer } from '../../../abi/VendoredRepCrowdsourcer.js'
+import { EthereumQuantity } from '../types/wire-types.js'
 import { getRepCrowdSourcerAddress } from './deployment.js'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
+import { AccountAddress } from './viem.js'
 
 export const repV2TokenAddress = '0x221657776846890989a759BA2973e427DfF5C9bB'
 

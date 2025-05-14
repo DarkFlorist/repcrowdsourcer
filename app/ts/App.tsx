@@ -5,7 +5,7 @@ import { addressString, bigintToDecimalString, bigintToDecimalStringWithUnknown,
 import { getChainId } from 'viem/actions'
 import { AccountAddress, EthereumAddress, EthereumQuantity } from './types/types.js'
 import { useEffect } from 'preact/hooks'
-import { deployRepCrowdSourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
+import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
 import { approveErc20Token, getAllowanceErc20Token, getErc20TokenBalance } from './utils/erc20.js'
 import { deposit, getBalance, getContractClosed, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, massWithdraw, micahCloseContract, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
 import { Input } from './utils/Input.js'
@@ -204,7 +204,7 @@ export function App() {
 	const deploy = async () => {
 		const writeClient = maybeWriteClient.deepPeek()
 		if (writeClient === undefined) throw new Error('writeClient missing')
-		await deployRepCrowdSourcer(writeClient)
+		await deployRepCrowdsourcer(writeClient)
 		isDeployed.deepValue = true
 	}
 

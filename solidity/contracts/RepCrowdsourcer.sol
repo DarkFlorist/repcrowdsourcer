@@ -11,14 +11,17 @@ contract RepCrowdsourcer {
 	IERC20 public repV2 = IERC20(0x221657776846890989a759BA2973e427DfF5C9bB);
 	address public micahAddress = 0x82c34Fdbc5c71B899F484e716BAD2271e2c6f0C3; // micah.darkflorist.eth VERIFY!
 	uint256 public minBalanceToWithdraw = 200000 ether;
+
 	mapping(address => uint256) public deposits;
-	bool public contractClosed; // close depo
+	bool public contractClosed;
+
 	event Deposit(address indexed depositor, uint256 amount);
 	event Withdraw(address indexed withdrawer, uint256 amount);
 	event ContractClosed();
 	event MicahWithdraw(uint256 amount);
 
 	bool internal locked;
+
 	modifier noReentrant() {
 		require(!locked, 'No re-entrancy');
 		locked = true;

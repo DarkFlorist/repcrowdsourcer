@@ -3,7 +3,7 @@
 /solidity/node_modules
 /app/vendor
 /app/js
-app/ts/VendoredAugurConstantProductMarket.ts
+app/ts/VendoredRepCrowdsourcer.ts
 /solidity/js
 solidity/user-config.json
-solidity/ts/abi/VendoredAugurConstantProductMarket.ts
+solidity/ts/abi/VendoredRepCrowdsourcer.ts
