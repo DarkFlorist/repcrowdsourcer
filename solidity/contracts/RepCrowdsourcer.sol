@@ -29,7 +29,6 @@ contract GoFundMicah {
 
 	function internalWithdraw(address recipient) private {
 		uint256 amount = deposits[recipient];
-		require(amount > 0, 'not enough balance to withdraw');
 		deposits[recipient] = 0;
 		repV2.transfer(recipient, amount);
 		emit Withdraw(recipient, amount);
