@@ -414,7 +414,7 @@ export function App() {
 		</div>
 		<footer class = 'site-footer'>
 			<div>
-				Augur Constant Product Market by&nbsp;
+				REP Crowdsourcer by&nbsp;
 				<a href = 'https://dark.florist' target = '_blank' rel = 'noopener noreferrer'>
 					Dark Florist
 				</a>
