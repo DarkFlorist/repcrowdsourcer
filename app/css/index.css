@@ -6,8 +6,6 @@
 	--input-border: #5c4f1d;
 	--btn-primary-bg: #facc15; /* amber-400 */
 	--btn-primary-text: #1a1a1a;
-	--btn-secondary-bg: transparent;
-	--btn-secondary-text: #fef9c3; /* yellow-100 */
 	--btn-border: #d97706; /* amber-600 */
 	--btn-radius: 0.5rem;
 	--btn-padding: 0.75rem 1.25rem;
@@ -192,27 +190,6 @@ input:disabled, textarea:disabled, select:disabled {
 	cursor: not-allowed;
 }
 
-.button-secondary {
-	background-color: var(--btn-secondary-bg);
-	color: var(--btn-secondary-text);
-	border: 2px solid var(--btn-border);
-	padding: var(--btn-padding);
-	font-size: var(--btn-font-size);
-	border-radius: var(--btn-radius);
-	cursor: pointer;
-	transition: background-color var(--transition-normal), color var(--transition-normal);
-}
-
-.button-secondary:hover {
-	background-color: var(--btn-border);
-	color: #fff;
-}
-
-.button-secondary:disabled {
-	opacity: 0.6;
-	cursor: not-allowed;
-}
-
 .button-small {
 	padding: 5px;
 }
@@ -253,6 +230,7 @@ input:disabled, textarea:disabled, select:disabled {
 	display: flex;
 	flex-direction: column;
 	gap: 1.5rem;
+	margin-top: 0;
 }
 
 .form-group {
@@ -290,8 +268,8 @@ input:disabled, textarea:disabled, select:disabled {
 
 .micah-buttons {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 1rem;
+	grid-template-columns: max-content max-content;
+	gap: 1em;
 	padding-bottom: 1em;
 }
 
@@ -304,6 +282,7 @@ h3 {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	padding-bottom: 30px;
 }
 
 .funding-circle {

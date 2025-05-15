@@ -297,22 +297,30 @@ export function App() {
 	}
 
 	return <main style = 'overflow: auto;'>
-		<div class = 'app'>
-			<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto auto;'>
-				<div class = 'crowdsourcer-header'>
-					<img src = 'favicon.ico' alt = 'Icon' />
-					<div>
-						<span>REP Crowdsourcer</span>
-					</div>
-				</div>
-				{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
-				<div style = 'display: flex; align-items: center;'>
-					<WalletComponent loadingAccount = { loadingAccount } maybeReadClient = { maybeReadClient } maybeWriteClient = { maybeWriteClient } account = { account }>
-						<WalletBalances ethBalance = { ethBalance } repBalance = { repBalance }/>
-					</WalletComponent>
+		<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto auto;'>
+			<div class = 'crowdsourcer-header'>
+				<img src = 'favicon.ico' alt = 'Icon' />
+				<div>
+					<span>REP Crowdsourcer</span>
 				</div>
 			</div>
+			{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
+			<div style = 'display: flex; align-items: center;'>
+				<WalletComponent loadingAccount = { loadingAccount } maybeReadClient = { maybeReadClient } maybeWriteClient = { maybeWriteClient } account = { account }>
+					<WalletBalances ethBalance = { ethBalance } repBalance = { repBalance }/>
+				</WalletComponent>
+			</div>
 		</div>
+
+		<div class = 'funding-status'>
+			<div class = 'funding-circle'>
+				<span class = 'percent'> { fundedPercentageString.value }</span>
+			</div>
+			<div class = 'balance'>
+				Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP
+			</div>
+		</div>
+
 		<div class = 'main-window'>
 			<UnexpectedError close = { clearError } unexpectedError = { unexpectedError }/>
 			{ chainId.value !== undefined && chainId.value !== 1 ? <div class = 'warning-box'>
@@ -323,14 +331,6 @@ export function App() {
 					<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
 				</div> : <></> }
 
-				<div class = 'funding-status'>
-					<div class = 'funding-circle'>
-						<span class = 'percent'> { fundedPercentageString.value }</span>
-					</div>
-					<div class = 'balance'>
-						Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP
-					</div>
-				</div>
 				<div class = 'form-group highlight'>
 					<h3>Fund AugurV2 Fork</h3>
 					<p>
@@ -379,8 +379,8 @@ export function App() {
 					<h3>Micah Section</h3>
 					<p>When contracts balance Reaches { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP Micah can withdraw it all.</p>
 					<div class = 'micah-buttons'>
-						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Micah Withdraw & Close</button>
-						<button class = { 'button button-secondary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Micah Close Contract Without Withdraw</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
 					</div>
 					<div style = { { display: 'grid', gridTemplateColumns: '1fr auto', gap: '1em' } }>
 						<Input
