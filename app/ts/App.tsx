@@ -329,8 +329,10 @@ export function App() {
 				</div>
 				<div class = 'form-group'>
 					<h3>Deposit REP</h3>
-					<p>Deposit REP to contract for Micah to withdawn. Micah is intended to use the REP to fund Augur v2 fork.</p>
-					<p>To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b> </p>
+					<p>
+						Deposit REP to a contract that Micah can withdraw from once { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork.
+						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
+					</p>
 					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
 						<Input
 							class = 'input reporting-panel-input'
