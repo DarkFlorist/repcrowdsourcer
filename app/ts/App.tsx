@@ -78,7 +78,6 @@ export function App() {
 	const requiredBalance = useOptionalSignal<bigint>(undefined)
 	const ourBalance = useOptionalSignal<bigint>(undefined)
 	const contractClosed = useOptionalSignal<boolean>(undefined)
-	const repCrowdSourcerAddress = useSignal<AccountAddress>(getRepCrowdSourcerAddress())
 	const allowedRep = useOptionalSignal<bigint>(undefined)
 
 	const depositRepInput = useOptionalSignal<bigint>(undefined)
@@ -100,6 +99,8 @@ export function App() {
 		chainId.value = await getChainId(readClient)
 	}
 	useSignalEffect(() => {
+		maybeReadClient.deepValue
+		maybeWriteClient.deepValue
 		account.value
 		updateChainId()
 	})
@@ -113,6 +114,7 @@ export function App() {
 	useEffect(() => {
 		if (window.ethereum === undefined) {
 			isWindowEthereum.value = false
+			updateWalletSignals(maybeReadClient, maybeWriteClient, account, undefined)
 			return
 		}
 		isWindowEthereum.value = true
@@ -160,20 +162,21 @@ export function App() {
 
 	useSignalEffect(() => { checkIfDeployed(maybeReadClient.deepValue, chainId.value).catch(handleUnexpectedError) })
 
-	const refresh = async (writeClient: WriteClient | undefined, isDeployed: boolean | undefined, chainId: number | undefined) => {
-		if (writeClient === undefined) return
-		if (account.deepValue === undefined) return
+	const refresh = async (readClient: ReadClient | undefined, writeClient: WriteClient | undefined, isDeployed: boolean | undefined, chainId: number | undefined) => {
+
 		if (isDeployed !== true) return
-		allowedRep.deepValue = await getAllowanceErc20Token(writeClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())
-		micahAddress.deepValue = await getMicahAddress(writeClient)
-		totalBalance.deepValue = await getTotalBalance(writeClient)
-		requiredBalance.deepValue = await getMinBalanceToWithdraw(writeClient)
-		contractClosed.deepValue = await getContractClosed(writeClient)
+		if (readClient === undefined) return
+		micahAddress.deepValue = await getMicahAddress(readClient)
+		totalBalance.deepValue = await getTotalBalance(readClient)
+		contractClosed.deepValue = await getContractClosed(readClient)
+		requiredBalance.deepValue = await getMinBalanceToWithdraw(readClient)
+		if (account.deepValue === undefined) return
+		if (writeClient === undefined) return
+		allowedRep.deepValue = await getAllowanceErc20Token(readClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())
 		ourBalance.deepValue = await getBalance(writeClient, account.deepValue)
 		await updateTokenBalances(writeClient, chainId)
 	}
-	const forceRefresh = () => refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
-	useSignalEffect(() => { refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError) })
+	useSignalEffect(() => { refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError) })
 
 	const isMicah = useComputed(() => {
 		if (maybeWriteClient.deepValue === undefined) return false
@@ -243,7 +246,9 @@ export function App() {
 		if (maybeWriteClient.deepValue === undefined) return true
 		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0n) return true
 		if (allowedRep.deepValue === undefined) return true
+		if (repBalance.deepValue === undefined) return true
 		if (allowedRep.deepValue >= depositRepInput.deepValue) return true
+		if (depositRepInput.deepValue > repBalance.deepValue) return true
 		return false
 	})
 
@@ -263,32 +268,32 @@ export function App() {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0) throw new Error('Deposit amount not set to non negative value')
 		await deposit(maybeWriteClient.deepValue, depositRepInput.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		await withdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonMassWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (withdrawAddreses.deepValue === undefined || withdrawAddreses.deepValue.length === 0) throw new Error('Withdraw amount not set to non negative value')
 		await massWithdraw(maybeWriteClient.deepValue, withdrawAddreses.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahCloseContract = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (isMicah.value !== true) throw new Error('you are not micah!')
 		await micahCloseContract(maybeWriteClient.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahWithdraw = async  () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (isMicah.value !== true) throw new Error('you are not micah!')
 		await micahWithdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
-		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	return <main style = 'overflow: auto;'>
@@ -314,24 +319,26 @@ export function App() {
 				<p> Please switch to mainnet </p>
 			</div> : <></> }
 			<div class = 'form-grid'>
-				<div class = 'form-group'>
-					<h3>Contract Status</h3>
-					{ contractClosed.deepValue ? <div class = 'warning-box'>
-						<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
-					</div> : <></> }
+				{ contractClosed.deepValue ? <div class = 'warning-box'>
+					<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
+				</div> : <></> }
 
-					<div>
-						<p>REP CrowdSourcer Address: { repCrowdSourcerAddress.value } </p>
-						<p>Micah Address: { micahAddress.deepValue }</p>
-						<p>Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP ({ fundedPercentageString.value } funded)</p>
+				<div class = 'funding-status'>
+					<div class = 'funding-circle'>
+						<span class = 'percent'> { fundedPercentageString.value }</span>
 					</div>
-					<button class = { 'button button-secondary button-small' } onClick = { forceRefresh }> Refresh </button>
+					<div class = 'balance'>
+						Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP
+					</div>
 				</div>
-				<div class = 'form-group'>
-					<h3>Deposit REP</h3>
+				<div class = 'form-group highlight'>
+					<h3>Fund AugurV2 Fork</h3>
 					<p>
-						Deposit REP to a contract that Micah can withdraw from once { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork.
-						<br/><br/>To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
+						Deposit REP to a contract that Micah can withdraw from once { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost.
+						<br/><br/>
+						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to the following address: { micahAddress.deepValue }. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
+						<br/><br/>
+						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
 					</p>
 					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
 						<Input
@@ -362,14 +369,19 @@ export function App() {
 					</div>
 				</div>
 				<div class = 'form-group'>
-					<h3>Withdraw REP</h3>
-					<p>You can withdraw your REP as long as its not withdrawn by Micah.</p>
-					<p>Balance: { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP </p>
-					<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Withdraw </button>
+					<h3>Claim Deposit Back</h3>
+					<p>You have { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP deposited in the contract. You can withdraw your REP as long as its not withdrawn by Micah.</p>
+					<div style = { 'display: flex; align-items: baseline; gap: 0.5em;' }>
+						<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Return Deposit </button>
+					</div>
 				</div>
 				<div class = 'form-group'>
-					<h3>Mass withdraw</h3>
-					<p>Paste a comma separated list of Ethereum addresses to withdraw their respective balances into themselves.</p>
+					<h3>Micah Section</h3>
+					<p>When contracts balance Reaches { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP Micah can withdraw it all.</p>
+					<div class = 'micah-buttons'>
+						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Micah Withdraw & Close</button>
+						<button class = { 'button button-secondary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Micah Close Contract Without Withdraw</button>
+					</div>
 					<div style = { { display: 'grid', gridTemplateColumns: '1fr auto', gap: '1em' } }>
 						<Input
 							style = 'height: fit-content;'
@@ -395,15 +407,7 @@ export function App() {
 							} }
 							invalidSignal = { useSignal<boolean>(false) }
 						/>
-						<button class = { 'button button-primary' } onClick = { buttonMassWithdraw } disabled = { massWithdrawButtonDisabled.value }> Mass Withdraw </button>
-					</div>
-				</div>
-				<div class = 'form-group'>
-					<h3>Micah Section</h3>
-					<p>When contracts balance Reaches { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP Micah can withdraw it all.</p>
-					<div class = 'micah-buttons'>
-						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Micah Withdraw & Close</button>
-						<button class = { 'button button-secondary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Micah Close Contract Without Withdraw</button>
+						<button class = { 'button button-primary' } onClick = { buttonMassWithdraw } disabled = { massWithdrawButtonDisabled.value }> Return Deposits </button>
 					</div>
 				</div>
 			</div>
