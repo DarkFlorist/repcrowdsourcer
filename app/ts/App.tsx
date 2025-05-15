@@ -62,75 +62,6 @@ const updateWalletSignals = (maybeReadClient: OptionalSignal<ReadClient>, maybeW
 	account.deepValue = newAccount
 }
 
-interface AllowancesProps {
-	maybeWriteClient: OptionalSignal<WriteClient>
-	allowedRep: OptionalSignal<bigint>
-	handleUnexpectedError: (error: unknown) => void
-}
-
-export const Allowances = ( { maybeWriteClient, allowedRep, handleUnexpectedError }: AllowancesProps) => {
-	const repAllowanceToBeSet = useOptionalSignal<bigint>(undefined)
-	const cannotSetRepAllowance = useComputed(() => {
-		if (maybeWriteClient.deepValue === undefined) return true
-		if (repAllowanceToBeSet.deepValue === undefined || repAllowanceToBeSet.deepValue <= 0n) return true
-		return false
-	})
-
-	const approveRep = async () => {
-		const writeClient = maybeWriteClient.deepPeek()
-		if (writeClient === undefined) return handleUnexpectedError(new Error('missing writeClient'))
-		if (repAllowanceToBeSet.deepValue === undefined || repAllowanceToBeSet.deepValue <= 0n) return handleUnexpectedError(new Error('not valid allowance'))
-		await approveErc20Token(writeClient, repV2TokenAddress, getRepCrowdSourcerAddress(), repAllowanceToBeSet.deepValue).catch(handleUnexpectedError)
-		try {
-			allowedRep.deepValue = await getAllowanceErc20Token(writeClient, repV2TokenAddress, writeClient.account.address, getRepCrowdSourcerAddress())
-		} catch(error: unknown) {
-			return handleUnexpectedError(error)
-		}
-	}
-
-	function setMaxRepAllowance() {
-		repAllowanceToBeSet.deepValue = 2n ** 256n - 1n
-	}
-
-	return <div class = 'form-grid'>
-		<div>
-			<h3>Allowances</h3>
-			<p>Allow Crowdsourcer to access your REP. It's recommend you approve equal amount that you plan on sending to crowdsourcer</p>
-		</div>
-		<div style = { { display: 'grid', gap: '0.5em', gridTemplateColumns: 'auto auto auto' } }>
-			<div style = { { alignContent: 'center' } }>
-				Allowed REP: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP</b>
-			</div>
-			<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
-				<Input
-					class = 'input reporting-panel-input'
-					type = 'text'
-					placeholder = 'REP to allow'
-					disabled = { useComputed(() => false) }
-					style = { { maxWidth: '300px' } }
-					value = { repAllowanceToBeSet }
-					sanitize = { (amount: string) => amount.trim() }
-					tryParse = { (amount: string | undefined) => {
-						if (amount === undefined) return { ok: false } as const
-						if (!isDecimalString(amount.trim())) return { ok: false } as const
-						const parsed = decimalStringToBigint(amount.trim(), 18n)
-						return { ok: true, value: parsed } as const
-					}}
-					serialize = { (amount: bigint | undefined) => {
-						if (amount === undefined) return ''
-						return bigintToDecimalString(amount, 18n, 18)
-					}}
-				/>
-				<span class = 'unit'>REP</span>
-				<button class = 'button button-secondary button-small' style = { { whiteSpace: 'nowrap' } } onClick = { setMaxRepAllowance }>Max</button>
-			</div>
-			<button class = 'button button-secondary button-small' style = { { width: '100%', whiteSpace: 'nowrap' } } disabled = { cannotSetRepAllowance } onClick = { approveRep }>
-				Set REP allowance
-			</button>
-		</div>
-	</div>
-}
-
 export function App() {
 	const loadingAccount = useSignal<boolean>(false)
 	const isWindowEthereum = useSignal<boolean>(true)
@@ -308,6 +239,26 @@ export function App() {
 		return false
 	})
 
+	const cannotSetRepAllowance = useComputed(() => {
+		if (maybeWriteClient.deepValue === undefined) return true
+		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0n) return true
+		if (allowedRep.deepValue === undefined) return true
+		if (allowedRep.deepValue >= depositRepInput.deepValue) return true
+		return false
+	})
+
+	const approveRep = async () => {
+		const writeClient = maybeWriteClient.deepPeek()
+		if (writeClient === undefined) return handleUnexpectedError(new Error('missing writeClient'))
+		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0n) return handleUnexpectedError(new Error('not valid allowance'))
+		await approveErc20Token(writeClient, repV2TokenAddress, getRepCrowdSourcerAddress(), depositRepInput.deepValue).catch(handleUnexpectedError)
+		try {
+			allowedRep.deepValue = await getAllowanceErc20Token(writeClient, repV2TokenAddress, writeClient.account.address, getRepCrowdSourcerAddress())
+		} catch(error: unknown) {
+			return handleUnexpectedError(error)
+		}
+	}
+
 	const buttonDeposit = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0) throw new Error('Deposit amount not set to non negative value')
@@ -375,11 +326,11 @@ export function App() {
 						<p>Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP ({ fundedPercentageString.value } funded)</p>
 					</div>
 					<button class = { 'button button-secondary button-small' } onClick = { forceRefresh }> Refresh </button>
-					<Allowances maybeWriteClient = { maybeWriteClient } allowedRep = { allowedRep } handleUnexpectedError = { handleUnexpectedError }/>
 				</div>
 				<div class = 'form-group'>
 					<h3>Deposit REP</h3>
 					<p>Deposit REP to contract for Micah to withdawn. Micah is intended to use the REP to fund Augur v2 fork.</p>
+					<p>To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b> </p>
 					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
 						<Input
 							class = 'input reporting-panel-input'
@@ -401,13 +352,17 @@ export function App() {
 							}}
 						/>
 						<span class = 'unit'>REP</span>
+
+						<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
+							Set Allowance
+						</button>
 						<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
 					</div>
 				</div>
 				<div class = 'form-group'>
 					<h3>Withdraw REP</h3>
 					<p>You can withdraw your REP as long as its not withdrawn by Micah.</p>
-					<p> Balance: { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP </p>
+					<p>Balance: { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP </p>
 					<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Withdraw </button>
 				</div>
 				<div class = 'form-group'>
