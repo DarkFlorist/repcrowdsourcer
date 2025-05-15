@@ -49,7 +49,7 @@ describe('Contract Test Suite', () => {
 
 		// withdraw
 		assert.strictEqual(await getBalance(client, ourAddress), oneTimeDeposit, 'the contract stored our balance')
-		await withdraw(client, oneTimeDeposit)
+		await withdraw(client)
 		assert.strictEqual(await getBalance(client, ourAddress), 0n, 'the contract zeroed our balance')
 		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, contract), 0n, 'contract is empty after withdraw')
 		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, ourAddress), startingRep, 'we got rep back')

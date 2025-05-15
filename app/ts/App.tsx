@@ -151,7 +151,6 @@ export function App() {
 	const allowedRep = useOptionalSignal<bigint>(undefined)
 
 	const depositRepInput = useOptionalSignal<bigint>(undefined)
-	const withdrawRepInput = useOptionalSignal<bigint>(undefined)
 	const withdrawAddreses = useOptionalSignal<AccountAddress[]>(undefined)
 
 	const unexpectedError = useOptionalSignal<string>(undefined)
@@ -271,18 +270,10 @@ export function App() {
 		return false
 	})
 
-	const withdrawInputDisabled = useComputed(() => {
+	const withdrawButtonDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
 		if (ourBalance.deepValue === undefined) return true
 		if (ourBalance.deepValue <= 0n) return true
-		if (chainId.value !== 1) return true
-		return false
-	})
-
-	const withdrawButtonDisabled = useComputed(() => {
-		if (withdrawInputDisabled.value) return true
-		if (withdrawRepInput.deepValue === undefined) return true
-		if (withdrawRepInput.deepValue <= 0n) return true
 		if (chainId.value !== 1) return true
 		return false
 	})
@@ -325,8 +316,7 @@ export function App() {
 	}
 	const buttonWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (withdrawRepInput.deepValue === undefined || withdrawRepInput.deepValue <= 0) throw new Error('Withdraw amount not set to non negative value')
-		await withdraw(maybeWriteClient.deepValue, withdrawRepInput.deepValue).catch(handleUnexpectedError)
+		await withdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonMassWithdraw = async () => {
@@ -417,30 +407,8 @@ export function App() {
 				<div class = 'form-group'>
 					<h3>Withdraw REP</h3>
 					<p>You can withdraw your REP as long as its not withdrawn by Micah.</p>
-					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
-						<Input
-							class = 'input reporting-panel-input'
-							type = 'text'
-							placeholder = 'REP to withdraw'
-							disabled = { withdrawInputDisabled.value }
-							style = { { maxWidth: '300px' } }
-							value = { withdrawRepInput }
-							sanitize = { (amount: string) => amount.trim() }
-							tryParse = { (amount: string | undefined) => {
-								if (amount === undefined) return { ok: false } as const
-								if (!isDecimalString(amount.trim())) return { ok: false } as const
-								const parsed = decimalStringToBigint(amount.trim(), 18n)
-								return { ok: true, value: parsed } as const
-							}}
-							serialize = { (amount: bigint | undefined) => {
-								if (amount === undefined) return ''
-								return bigintToDecimalString(amount, 18n, 18)
-							}}
-						/>
-						<span class = 'unit'>REP</span>
-						<p> / </p> { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP
-						<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Withdraw </button>
-					</div>
+					<p> Balance: { bigintToDecimalStringWithUnknown(ourBalance.deepValue, 18n, 2) } REP </p>
+					<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Withdraw </button>
 				</div>
 				<div class = 'form-group'>
 					<h3>Mass withdraw</h3>
