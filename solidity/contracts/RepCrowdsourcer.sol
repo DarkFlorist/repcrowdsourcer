@@ -2,15 +2,15 @@
 pragma solidity 0.8.29;
 
 interface IERC20 {
-    function balanceOf(address account) external view returns (uint256);
-    function transfer(address to, uint256 value) external returns (bool);
-    function transferFrom(address from, address to, uint256 value) external returns (bool);
+	function balanceOf(address account) external view returns (uint256);
+	function transfer(address to, uint256 value) external returns (bool);
+	function transferFrom(address from, address to, uint256 value) external returns (bool);
 }
 
 contract GoFundMicah {
-	IERC20 public repV2 = IERC20(0x221657776846890989a759BA2973e427DfF5C9bB);
-	address public micahAddress = 0xed1e06B49C53293A1321Dd47Abf8D50F9Be77E11; // GoFundMicah SAFE
-	uint256 public minBalanceToWithdraw = 200000 ether;
+	IERC20 public constant repV2 = IERC20(0x221657776846890989a759BA2973e427DfF5C9bB);
+	address public constant micahAddress = 0xed1e06B49C53293A1321Dd47Abf8D50F9Be77E11; // GoFundMicah SAFE
+	uint256 public constant minBalanceToWithdraw = 200000 ether;
 
 	mapping(address => uint256) public deposits;
 	bool public contractClosed = false;
