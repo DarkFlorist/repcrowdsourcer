@@ -9,5 +9,5 @@ interface EtherScanAddressProps {
 export const EtherScanAddress = ({ address, name }: EtherScanAddressProps) => {
 	if (address === undefined) return '?'
 	const etherScan = useComputed(() => `https://etherscan.io/address/${ address.value }`)
-	return <a href = { etherScan }>{ name }</a>
+	return <a target = '_blank' rel = 'noopener noreferrer' href = { etherScan }>{ name }</a>
 }
