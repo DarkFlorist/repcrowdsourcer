@@ -1,6 +1,6 @@
 import 'viem/window'
 import { encodeAbiParameters, keccak256 } from 'viem'
-import { repV2TokenAddress, TEST_ADDRESSES } from './constants.js'
+import { DAI, repV2TokenAddress, TEST_ADDRESSES } from './constants.js'
 import { addressString } from './bigint.js'
 import { Address } from 'viem'
 import { MockWindowEthereum } from '../MockWindowEthereum.js'
@@ -102,6 +102,19 @@ export const mintRep = async (mockWindowEthereum: MockWindowEthereum, mintAmount
 	}, {} as { [key: string]: bigint } )
 	await mockWindowEthereum.addStateOverrides({ [repAddress]: { stateDiff: stateSets }})
 }
+
+export const mintDAI = async (mockWindowEthereum: MockWindowEthereum, mintAmounts: { address: Address, amount: bigint }[]) => {
+	const overrides = mintAmounts.map((mintAmount) => {
+		const encodedKeySlotHash = keccak256(encodeAbiParameters([{ type: 'address' }, { type: 'uint256' }], [mintAmount.address, 2n]))
+		return { key: encodedKeySlotHash, value: mintAmount.amount }
+	})
+	const stateSets = overrides.reduce((acc, current) => {
+		acc[current.key] = current.value
+		return acc
+	}, {} as { [key: string]: bigint } )
+	await mockWindowEthereum.addStateOverrides({ [DAI]: { stateDiff: stateSets }})
+}
+
 export const setupTestAccounts = async (mockWindowEthereum: MockWindowEthereum) => {
 	const accountValues = TEST_ADDRESSES.map((address) => {
 		return { address: addressString(address), amount: 1000000n * 10n**18n}
