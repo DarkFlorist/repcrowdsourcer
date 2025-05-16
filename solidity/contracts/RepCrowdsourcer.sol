@@ -9,7 +9,7 @@ interface IERC20 {
 
 contract GoFundMicah {
 	IERC20 public repV2 = IERC20(0x221657776846890989a759BA2973e427DfF5C9bB);
-	address public micahAddress = 0x82c34Fdbc5c71B899F484e716BAD2271e2c6f0C3; // micah.darkflorist.eth VERIFY!
+	address public micahAddress = 0xed1e06B49C53293A1321Dd47Abf8D50F9Be77E11; // GoFundMicah SAFE
 	uint256 public minBalanceToWithdraw = 200000 ether;
 
 	mapping(address => uint256) public deposits;

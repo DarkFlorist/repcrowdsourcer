@@ -4,7 +4,7 @@ export const MOCK_ADDRESS = 0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefn
 export const PROXY_DEPLOYER_ADDRESS = 0x4e59b44847b379578588920ca78fbf26c0b4956cn
 export const VITALIK = 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045n
 
-export const MICAH = 0x82c34Fdbc5c71B899F484e716BAD2271e2c6f0C3n
+export const MICAH = 0xed1e06B49C53293A1321Dd47Abf8D50F9Be77E11n; // GoFundMicah SAFE
 // Testing
 export const TEST_ADDRESSES = [
 	0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266n,
