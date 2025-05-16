@@ -128,16 +128,16 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client, DAI, ourAddress), 0n, 'We sent all DAI')
 		assert.strictEqual(await getErc20TokenBalance(client, DAI, contract), contractDaiBalance + balance, 'Contract has it all')
 
-		await assert.rejects(recoverERC20(client, DAI, 1n), 'we cannot recover it')
+		await assert.rejects(recoverERC20(client, DAI, ourAddress), 'we cannot recover it')
 		await transferErc20Token(client, repV2TokenAddress, contract, 100n)
 		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, contract), 100n, 'Contract has rep')
-		await assert.rejects(recoverERC20(client, repV2TokenAddress, 1n), 'we cannot recover rep')
+		await assert.rejects(recoverERC20(client, repV2TokenAddress, ourAddress), 'we cannot recover rep')
 
 		const micahDaiBalance = await getErc20TokenBalance(client, DAI, micahAddress)
-		await recoverERC20(micahClient, DAI, balance)
+		await recoverERC20(micahClient, DAI, micahAddress)
 		assert.strictEqual(await getErc20TokenBalance(client, DAI, contract), 0n, 'Contract is empty of dai')
 		assert.strictEqual(await getErc20TokenBalance(client, DAI, micahAddress), micahDaiBalance + balance, 'Micah has the dai')
-		await assert.rejects(recoverERC20(micahClient, repV2TokenAddress, 1n), 'Micah cannot recover rep')
+		await assert.rejects(recoverERC20(micahClient, repV2TokenAddress, micahAddress), 'Micah cannot recover rep')
 	})
 
 	test('Cannot send ETH to contract', async () => {

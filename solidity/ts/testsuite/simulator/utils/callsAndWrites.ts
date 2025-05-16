@@ -97,11 +97,11 @@ export const micahWithdraw = async (client: WriteClient) => {
 	})
 }
 
-export const recoverERC20 = async (client: WriteClient, tokenAddress: AccountAddress, amount: EthereumQuantity) => {
+export const recoverERC20 = async (client: WriteClient, tokenAddress: AccountAddress, recipient: AccountAddress) => {
 	return await client.writeContract({
 		abi: GoFundMicah.abi,
 		functionName: 'recoverERC20',
 		address: getRepCrowdSourcerAddress(),
-		args: [tokenAddress, amount]
+		args: [tokenAddress, recipient]
 	})
 }

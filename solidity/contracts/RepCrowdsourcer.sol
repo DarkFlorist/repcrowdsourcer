@@ -19,7 +19,7 @@ contract GoFundMicah {
 	event Withdraw(address indexed withdrawer, uint256 amount);
 	event ContractClosed();
 	event MicahWithdraw(uint256 amount);
-	event TokenRecovered(address tokenAddress, uint256 amount);
+	event TokenRecovered(address tokenAddress, address recipient, uint256 amount);
 
 	function deposit(uint256 amount) public {
 		require(!contractClosed, 'Deposits are closed');
@@ -62,11 +62,12 @@ contract GoFundMicah {
 		emit ContractClosed();
 	}
 
-	function recoverERC20(address tokenAddress, uint256 amount) external {
+	function recoverERC20(address tokenAddress, address recipient) external {
 		require(msg.sender == micahAddress, 'Caller is not Micah!');
 		require(tokenAddress != address(repV2), 'Cannot recover REPv2 token');
 		IERC20 token = IERC20(tokenAddress);
-		token.transfer(micahAddress, amount);
-		emit TokenRecovered(tokenAddress, amount);
+		uint256 amount = token.balanceOf(address(this));
+		token.transfer(recipient, amount);
+		emit TokenRecovered(tokenAddress, recipient, amount);
 	}
 }
