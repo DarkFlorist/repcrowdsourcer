@@ -340,3 +340,7 @@ h3 {
 a {
 	color: var(--btn-primary-bg);
 }
+
+.external-link {
+	stroke: var(--btn-primary-bg);
+}
