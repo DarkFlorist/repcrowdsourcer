@@ -1,5 +1,5 @@
-import { Signal, useComputed } from "@preact/signals"
-import { AccountAddress } from "../types/types"
+import { Signal, useComputed } from '@preact/signals'
+import { AccountAddress } from '../types/types.js'
 
 interface EtherScanAddressProps {
 	name: string,
