@@ -12,6 +12,7 @@ import { printError } from './utils/misc.js'
 import { UnexpectedError } from './utils/error.js'
 import { AccountAddress } from './types/types.js'
 import { ethereumAddressSafeParse } from './utils/bigint.js'
+import { EtherScanAddress } from './utils/etherscan.js'
 
 interface WalletComponentProps {
 	maybeReadClient: OptionalSignal<ReadClient>
@@ -163,7 +164,6 @@ export function App() {
 	useSignalEffect(() => { checkIfDeployed(maybeReadClient.deepValue, chainId.value).catch(handleUnexpectedError) })
 
 	const refresh = async (readClient: ReadClient | undefined, writeClient: WriteClient | undefined, isDeployed: boolean | undefined, chainId: number | undefined) => {
-
 		if (isDeployed !== true) return
 		if (readClient === undefined) return
 		micahAddress.deepValue = await getMicahAddress(readClient)
@@ -317,7 +317,7 @@ export function App() {
 				<span class = 'percent'> { fundedPercentageString.value }</span>
 			</div>
 			<div class = 'balance'>
-				Balance: { bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP
+				{ bigintToDecimalStringWithUnknown(totalBalance.deepValue, 18n, 2) } REP / { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP
 			</div>
 		</div>
 
@@ -334,9 +334,9 @@ export function App() {
 				<div class = 'form-group highlight'>
 					<h3>Fund AugurV2 Fork</h3>
 					<p>
-						Deposit REP to a contract that Micah can withdraw from once { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost.
+						Deposit REP to { <EtherScanAddress name = { 'REP Crowdsourcer' } address = { useComputed(() => getRepCrowdSourcerAddress()) }/> } that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost.
 						<br/><br/>
-						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to the following address: { micahAddress.deepValue }. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
+						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to <EtherScanAddress name = { 'Micah' } address = { micahAddress.value }/>. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
 						<br/><br/>
 						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
 					</p>
