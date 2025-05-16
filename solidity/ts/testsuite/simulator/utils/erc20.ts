@@ -30,3 +30,13 @@ export const getErc20TokenBalance = async(readClient: ReadClient, tokenAddress: 
 		args: [account]
 	})
 }
+
+export const transferErc20Token = async (writeClient: WriteClient, tokenAddress: AccountAddress, receiver: AccountAddress, amount: EthereumQuantity) => {
+	return await writeClient.writeContract({
+		chain: mainnet,
+		abi: ERC20_ABI,
+		functionName: 'transfer',
+		address: tokenAddress,
+		args: [receiver, amount]
+	})
+}

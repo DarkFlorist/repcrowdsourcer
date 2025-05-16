@@ -17,6 +17,8 @@ export const TEST_ADDRESSES = [
 	MICAH,
 ]
 
+export const DAI = '0x6b175474e89094c44da98b954eedeac495271d0f'
+
 export const MAX_BLOCK_CACHE = 5
 export const TIME_BETWEEN_BLOCKS = 12
 export const GAS_PER_BLOB = 2n**17n
