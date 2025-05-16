@@ -297,14 +297,13 @@ export function App() {
 	}
 
 	return <main style = 'overflow: auto;'>
-		<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto auto;'>
+		<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto;'>
 			<div class = 'crowdsourcer-header'>
 				<img src = 'favicon.ico' alt = 'Icon' />
 				<div>
 					<span>REP Crowdsourcer</span>
 				</div>
 			</div>
-			{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
 			<div style = 'display: flex; align-items: center;'>
 				<WalletComponent loadingAccount = { loadingAccount } maybeReadClient = { maybeReadClient } maybeWriteClient = { maybeWriteClient } account = { account }>
 					<WalletBalances ethBalance = { ethBalance } repBalance = { repBalance }/>
@@ -322,6 +321,8 @@ export function App() {
 		</div>
 
 		<div class = 'main-window'>
+			{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
+
 			<UnexpectedError close = { clearError } unexpectedError = { unexpectedError }/>
 			{ chainId.value !== undefined && chainId.value !== 1 ? <div class = 'warning-box'>
 				<p> Please switch to mainnet </p>
@@ -363,7 +364,7 @@ export function App() {
 						<span class = 'unit'>REP</span>
 
 						<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
-							Set Allowance
+							Allow
 						</button>
 						<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
 					</div>

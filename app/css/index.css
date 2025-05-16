@@ -75,7 +75,9 @@ html, body {
 	color: #d6bb46;
 	font-weight: 400;
 	font-family: sans-serif;
+	text-overflow: ellipsis;
 	white-space: nowrap;
+	overflow: hidden;
 }
 
 .wallet-connect-button {
@@ -169,6 +171,7 @@ input:disabled, textarea:disabled, select:disabled {
 	box-shadow: var(--btn-shadow);
 	cursor: pointer;
 	transition: background-color var(--transition-normal), box-shadow var(--transition-normal), transform var(--transition-fast);
+	white-space: nowrap;
 }
 
 .button-primary:hover {
@@ -220,7 +223,6 @@ input:disabled, textarea:disabled, select:disabled {
 }
 
 .main-window {
-	width: 100%;
 	max-width: 900px;
 	margin: 2rem auto;
 	padding: 2rem;
