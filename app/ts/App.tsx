@@ -297,14 +297,13 @@ export function App() {
 	}
 
 	return <main style = 'overflow: auto;'>
-		<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto auto;'>
+		<div style = 'display: grid; justify-content: space-between; padding: 10px; grid-template-columns: auto auto;'>
 			<div class = 'crowdsourcer-header'>
 				<img src = 'favicon.ico' alt = 'Icon' />
 				<div>
 					<span>REP Crowdsourcer</span>
 				</div>
 			</div>
-			{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
 			<div style = 'display: flex; align-items: center;'>
 				<WalletComponent loadingAccount = { loadingAccount } maybeReadClient = { maybeReadClient } maybeWriteClient = { maybeWriteClient } account = { account }>
 					<WalletBalances ethBalance = { ethBalance } repBalance = { repBalance }/>
@@ -322,6 +321,8 @@ export function App() {
 		</div>
 
 		<div class = 'main-window'>
+			{ isDeployed.deepValue === false && chainId.value === 1 ? <button class = 'button button-primary' onClick = { deploy }>Deploy Crodwsourcer</button> : <div></div> }
+
 			<UnexpectedError close = { clearError } unexpectedError = { unexpectedError }/>
 			{ chainId.value !== undefined && chainId.value !== 1 ? <div class = 'warning-box'>
 				<p> Please switch to mainnet </p>
@@ -340,7 +341,7 @@ export function App() {
 						<br/><br/>
 						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
 					</p>
-					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
+					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em', flexFlow: 'wrap' } }>
 						<Input
 							class = 'input reporting-panel-input'
 							type = 'text'
@@ -361,11 +362,12 @@ export function App() {
 							}}
 						/>
 						<span class = 'unit'>REP</span>
-
-						<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
-							Set Allowance
-						</button>
-						<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
+						<div style = { { display: 'flex', gap: '0.5em' } }>
+							<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
+								Allow
+							</button>
+							<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
+						</div>
 					</div>
 				</div>
 				<div class = 'form-group'>
@@ -382,7 +384,7 @@ export function App() {
 						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
 						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
 					</div>
-					<div style = { { display: 'grid', gridTemplateColumns: '1fr auto', gap: '1em' } }>
+					<div class = 'micah-buttons'>
 						<Input
 							style = 'height: fit-content;'
 							key = 'designated-reporter-address'
