@@ -341,7 +341,7 @@ export function App() {
 						<br/><br/>
 						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
 					</p>
-					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em' } }>
+					<div style = { { display: 'flex', alignItems: 'baseline', gap: '0.5em', flexFlow: 'wrap' } }>
 						<Input
 							class = 'input reporting-panel-input'
 							type = 'text'
@@ -362,11 +362,12 @@ export function App() {
 							}}
 						/>
 						<span class = 'unit'>REP</span>
-
-						<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
-							Allow
-						</button>
-						<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
+						<div style = { { display: 'flex', gap: '0.5em' } }>
+							<button class = 'button-primary' disabled = { cannotSetRepAllowance } onClick = { approveRep }>
+								Allow
+							</button>
+							<button class = { 'button button-primary' } onClick = { buttonDeposit } disabled = { depositButtonDisabled.value }> Deposit </button>
+						</div>
 					</div>
 				</div>
 				<div class = 'form-group'>
@@ -383,7 +384,7 @@ export function App() {
 						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
 						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
 					</div>
-					<div style = { { display: 'grid', gridTemplateColumns: '1fr auto', gap: '1em' } }>
+					<div class = 'micah-buttons'>
 						<Input
 							style = 'height: fit-content;'
 							key = 'designated-reporter-address'
