@@ -62,10 +62,9 @@ contract GoFundMicah {
 		emit ContractClosed();
 	}
 
-	function recoverERC20(address tokenAddress, address recipient) external {
+	function recoverERC20(IERC20 token, address recipient) external {
 		require(msg.sender == micahAddress, 'Caller is not Micah!');
 		require(tokenAddress != address(repV2), 'Cannot recover REPv2 token');
-		IERC20 token = IERC20(tokenAddress);
 		uint256 amount = token.balanceOf(address(this));
 		token.transfer(recipient, amount);
 		emit TokenRecovered(tokenAddress, recipient, amount);
