@@ -37,7 +37,7 @@ export const getTotalBalance = async (client: ReadClient) => {
 export const getBalance = async (client: ReadClient, address: AccountAddress) => {
 	return await client.readContract({
 		abi: GoFundMicah.abi,
-		functionName: 'deposits',
+		functionName: 'balanceOf',
 		address: getRepCrowdSourcerAddress(),
 		args: [address]
 	})
@@ -103,5 +103,14 @@ export const recoverERC20 = async (client: WriteClient, tokenAddress: AccountAdd
 		functionName: 'recoverERC20',
 		address: getRepCrowdSourcerAddress(),
 		args: [tokenAddress, recipient]
+	})
+}
+
+export const transfer = async (client: WriteClient, account: AccountAddress, amount: EthereumQuantity) => {
+	return await client.writeContract({
+		abi: GoFundMicah.abi,
+		functionName: 'transfer',
+		address: getRepCrowdSourcerAddress(),
+		args: [account, amount]
 	})
 }
