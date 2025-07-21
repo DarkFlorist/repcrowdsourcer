@@ -175,4 +175,35 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, contract), 0n, 'contract is empty after withdraw')
 		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + oneTimeDeposit, 'we got rep back')
 	})
+
+	test('Can withdraw a Rep balance out of sync with standard deposits', async () => {
+		const micahClient = createWriteClient(mockWindow, MICAH, 0)
+		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
+		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
+		await deployRepCrowdsourcer(client)
+		const contract = getRepCrowdSourcerAddress()
+		const plenty = 1000000000n * 10n ** 18n
+		const ourAddress = addressString(TEST_ADDRESSES[0])
+		const startingRep = await getErc20TokenBalance(client, repV2TokenAddress, ourAddress)
+
+		// approve
+		await approveErc20Token(client, repV2TokenAddress, contract, plenty)
+		await approveErc20Token(client2, repV2TokenAddress, contract, plenty)
+
+		// deposit small amounts
+		const clientDeposit = 1000n * 10n ** 18n
+		const client2Deposit = clientDeposit * 2n
+		await deposit(client, clientDeposit)
+		await deposit(client2, client2Deposit)
+
+		// Micah sends additional REP to contract
+		await transferErc20Token(micahClient, repV2TokenAddress, contract, clientDeposit * 3n)
+
+		// withdraw from the recipient accounts and get proportional balance
+		await withdraw(client)
+		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep + clientDeposit, 'we got rep back plus the additional REP Micah added')
+
+		await withdraw(client2)
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + client2Deposit, 'we got rep back plus the additional REP Micah added')
+	})
 })

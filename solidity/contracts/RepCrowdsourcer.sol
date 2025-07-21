@@ -25,8 +25,9 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 
 	function internalWithdraw(address recipient) private {
 		uint256 amount = _balances[recipient];
+		uint256 proportionalBalance = repV2.balanceOf(address(this)) * amount / totalSupply();
 		_burn(recipient, amount);
-		repV2.transfer(recipient, amount);
+		repV2.transfer(recipient, proportionalBalance);
 		emit Withdraw(recipient, amount);
 	}
 
