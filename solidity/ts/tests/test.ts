@@ -206,4 +206,39 @@ describe('Contract Test Suite', () => {
 		await withdraw(client2)
 		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + client2Deposit, 'we got rep back plus the additional REP Micah added')
 	})
+
+		test('Can withdraw a Rep balance out of sync with standard deposits after close', async () => {
+		const micahClient = createWriteClient(mockWindow, MICAH, 0)
+		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
+		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
+		await deployRepCrowdsourcer(client)
+		const contract = getRepCrowdSourcerAddress()
+		const plenty = 1000000000n * 10n ** 18n
+		const ourAddress = addressString(TEST_ADDRESSES[0])
+		const startingRep = await getErc20TokenBalance(client, repV2TokenAddress, ourAddress)
+
+		// approve
+		await approveErc20Token(client, repV2TokenAddress, contract, plenty)
+		await approveErc20Token(client2, repV2TokenAddress, contract, plenty)
+
+		// deposit large amounts
+		const clientDeposit = 100000n * 10n ** 18n
+		const client2Deposit = clientDeposit * 2n
+		await deposit(client, clientDeposit)
+		await deposit(client2, client2Deposit)
+
+		// Micah withdraws
+		await micahWithdraw(micahClient)
+
+		// Micah then sends additional REP to contract
+		const returnedAmount = 30000n * 10n ** 18n
+		await transferErc20Token(micahClient, repV2TokenAddress, contract, returnedAmount)
+
+		// withdraw from the recipient accounts and get proportional balance
+		await withdraw(client)
+		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep - clientDeposit + returnedAmount / 3n, 'we got rep back plus the additional REP Micah added')
+
+		await withdraw(client2)
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep - client2Deposit + returnedAmount * 2n / 3n, 'we got rep back plus the additional REP Micah added')
+	})
 })
