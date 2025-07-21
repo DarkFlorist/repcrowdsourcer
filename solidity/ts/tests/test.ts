@@ -207,7 +207,7 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + client2Deposit, 'we got rep back plus the additional REP Micah added')
 	})
 
-		test('Can withdraw a Rep balance out of sync with standard deposits after close', async () => {
+	test('Can withdraw a Rep balance out of sync with standard deposits after close', async () => {
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
