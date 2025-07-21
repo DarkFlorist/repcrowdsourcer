@@ -231,7 +231,7 @@ describe('Contract Test Suite', () => {
 		await micahWithdraw(micahClient)
 
 		// Micah then sends additional REP to contract
-		const returnedAmount = 30000n * 10n ** 18n
+		const returnedAmount = clientDeposit * 3n
 		await transferErc20Token(micahClient, repV2TokenAddress, contract, returnedAmount)
 
 		// withdraw from the recipient accounts and get proportional balance
