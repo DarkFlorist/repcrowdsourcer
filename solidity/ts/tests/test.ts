@@ -6,7 +6,7 @@ import { mintDAI, setupTestAccounts } from '../testsuite/simulator/utils/utiliti
 import assert from 'node:assert'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from '../testsuite/simulator/utils/deployment.js'
 import { approveErc20Token, getErc20TokenBalance, transferErc20Token } from '../testsuite/simulator/utils/erc20.js'
-import { deposit, getBalance, getContractClosed, massWithdraw, micahCloseContract, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
+import { deposit, getBalance, getContractClosed, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
 import { addressString } from '../testsuite/simulator/utils/bigint.js'
 
 describe('Contract Test Suite', () => {
@@ -233,6 +233,12 @@ describe('Contract Test Suite', () => {
 		// Micah then sends additional REP to contract
 		const returnedAmount = clientDeposit * 3n
 		await transferErc20Token(micahClient, repV2TokenAddress, contract, returnedAmount)
+
+		// Initially withdraws have been disabled
+		assert.rejects(withdraw(client))
+
+		// Micah can re-enabled withdraws
+		await micahSetWithdrawsEnabled(micahClient, true)
 
 		// withdraw from the recipient accounts and get proportional balance
 		await withdraw(client)

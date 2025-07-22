@@ -9,6 +9,7 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 	uint256 public constant minBalanceToWithdraw = 200000 ether;
 
 	bool public contractClosed = false;
+	bool public withdrawsEnabled = true;
 
 	event Deposit(address indexed depositor, uint256 amount);
 	event Withdraw(address indexed withdrawer, uint256 amount);
@@ -24,6 +25,7 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 	}
 
 	function internalWithdraw(address recipient) private {
+		require(withdrawsEnabled, 'Withdraws disabled');
 		uint256 amount = _balances[recipient];
 		uint256 proportionalBalance = repV2.balanceOf(address(this)) * amount / totalSupply();
 		_burn(recipient, amount);
@@ -55,7 +57,13 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 		repV2.transfer(micahAddress, balance);
 		emit MicahWithdraw(balance);
 		contractClosed = true;
+		withdrawsEnabled = false;
 		emit ContractClosed();
+	}
+
+	function setWithdrawsEnabled(bool enabled) public {
+		require(msg.sender == micahAddress, 'Caller is not Micah');
+		withdrawsEnabled = enabled;
 	}
 
 	function recoverERC20(IERC20 token, address recipient) external {
