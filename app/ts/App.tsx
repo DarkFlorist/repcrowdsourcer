@@ -6,7 +6,7 @@ import { getChainId } from 'viem/actions'
 import { useEffect } from 'preact/hooks'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
 import { approveErc20Token, getAllowanceErc20Token, getErc20TokenBalance } from './utils/erc20.js'
-import { deposit, getBalance, getContractClosed, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, massWithdraw, micahCloseContract, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
+import { deposit, getBalance, getContractClosed, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
 import { Input } from './utils/Input.js'
 import { printError } from './utils/misc.js'
 import { UnexpectedError } from './utils/error.js'
@@ -233,6 +233,12 @@ export function App() {
 		if (chainId.value !== 1) return true
 		return false
 	})
+
+	const buttonMicahSetWithdrawsEnabledEnabled = useComputed(() => {
+		if (!isMicah.value) return true
+		return false
+	})
+
 	const micahWithdrawDisabled = useComputed(() => {
 		if (micahCloseContractButtonDisabled.value) return true
 		if (totalBalance.deepValue === undefined) return true
@@ -289,10 +295,17 @@ export function App() {
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
-	const buttonMicahWithdraw = async  () => {
+	const buttonMicahWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
 		if (isMicah.value !== true) throw new Error('you are not micah!')
 		await micahWithdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
+		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
+	}
+
+	const buttonMicahSetWithdrawsEnabled = async () => {
+		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
+		if (isMicah.value !== true) throw new Error('you are not micah!')
+		await micahSetWithdrawsEnabled(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
@@ -383,6 +396,7 @@ export function App() {
 					<div class = 'micah-buttons'>
 						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
 						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahSetWithdrawsEnabled } disabled = { buttonMicahSetWithdrawsEnabledEnabled.value }> Enable Withdraws</button>
 					</div>
 					<div class = 'micah-buttons'>
 						<Input
