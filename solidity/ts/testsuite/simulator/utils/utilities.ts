@@ -1,6 +1,6 @@
 import 'viem/window'
 import { encodeAbiParameters, keccak256 } from 'viem'
-import { DAI, repV2TokenAddress, TEST_ADDRESSES } from './constants.js'
+import { DAI, MICAH, repV2TokenAddress, TEST_ADDRESSES } from './constants.js'
 import { addressString } from './bigint.js'
 import { Address } from 'viem'
 import { MockWindowEthereum } from '../MockWindowEthereum.js'
@@ -116,9 +116,11 @@ export const mintDAI = async (mockWindowEthereum: MockWindowEthereum, mintAmount
 }
 
 export const setupTestAccounts = async (mockWindowEthereum: MockWindowEthereum) => {
+	const amount = 1000000n * 10n**18n
 	const accountValues = TEST_ADDRESSES.map((address) => {
-		return { address: addressString(address), amount: 1000000n * 10n**18n}
+		return { address: addressString(address), amount }
 	})
+	accountValues.push({address: addressString(MICAH), amount })
 	await mintETH(mockWindowEthereum, accountValues)
 	await mintRep(mockWindowEthereum, accountValues)
 }

@@ -6,7 +6,7 @@ import { mintDAI, setupTestAccounts } from '../testsuite/simulator/utils/utiliti
 import assert from 'node:assert'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from '../testsuite/simulator/utils/deployment.js'
 import { approveErc20Token, getErc20TokenBalance, transferErc20Token } from '../testsuite/simulator/utils/erc20.js'
-import { deposit, getBalance, getContractClosed, massWithdraw, micahCloseContract, micahWithdraw, recoverERC20, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
+import { deposit, getBalance, getContractClosed, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
 import { addressString } from '../testsuite/simulator/utils/bigint.js'
 
 describe('Contract Test Suite', () => {
@@ -145,5 +145,106 @@ describe('Contract Test Suite', () => {
 		await deployRepCrowdsourcer(client)
 		const contract = getRepCrowdSourcerAddress()
 		await assert.rejects(client.sendTransaction({ to: contract, value: 100n }))
+	})
+
+	test('Can ERC20 transfer balance in contract', async () => {
+		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
+		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
+		await deployRepCrowdsourcer(client)
+		const contract = getRepCrowdSourcerAddress()
+		const plenty = 1000000000n * 10n ** 18n
+		const ourAddress = addressString(TEST_ADDRESSES[0])
+		const startingRep = await getErc20TokenBalance(client, repV2TokenAddress, ourAddress)
+
+		// approve
+		await approveErc20Token(client, repV2TokenAddress, contract, plenty)
+
+		// deposit small amount
+		const oneTimeDeposit = 1000n * 10n ** 18n
+		await deposit(client, oneTimeDeposit)
+		assert.strictEqual(await getErc20TokenBalance(client, contract, client.account.address), oneTimeDeposit, 'client gained an ERC20 balance in the contract')
+
+		// transfer small amount to other account
+		await transfer(client, client2.account.address, oneTimeDeposit)
+		assert.strictEqual(await getErc20TokenBalance(client, contract, client.account.address), 0n, 'client transfered and lost tokens')
+		assert.strictEqual(await getErc20TokenBalance(client, contract, client2.account.address), oneTimeDeposit, 'client2 recieved the tokens')
+
+		// withdraw from the recipient account
+		await withdraw(client2)
+		assert.strictEqual(await getBalance(client2, ourAddress), 0n, 'the contract zeroed our balance')
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, contract), 0n, 'contract is empty after withdraw')
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + oneTimeDeposit, 'we got rep back')
+	})
+
+	test('Can withdraw a Rep balance out of sync with standard deposits', async () => {
+		const micahClient = createWriteClient(mockWindow, MICAH, 0)
+		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
+		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
+		await deployRepCrowdsourcer(client)
+		const contract = getRepCrowdSourcerAddress()
+		const plenty = 1000000000n * 10n ** 18n
+		const ourAddress = addressString(TEST_ADDRESSES[0])
+		const startingRep = await getErc20TokenBalance(client, repV2TokenAddress, ourAddress)
+
+		// approve
+		await approveErc20Token(client, repV2TokenAddress, contract, plenty)
+		await approveErc20Token(client2, repV2TokenAddress, contract, plenty)
+
+		// deposit small amounts
+		const clientDeposit = 1000n * 10n ** 18n
+		const client2Deposit = clientDeposit * 2n
+		await deposit(client, clientDeposit)
+		await deposit(client2, client2Deposit)
+
+		// Micah sends additional REP to contract
+		await transferErc20Token(micahClient, repV2TokenAddress, contract, clientDeposit * 3n)
+
+		// withdraw from the recipient accounts and get proportional balance
+		await withdraw(client)
+		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep + clientDeposit, 'we got rep back plus the additional REP Micah added')
+
+		await withdraw(client2)
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + client2Deposit, 'we got rep back plus the additional REP Micah added')
+	})
+
+	test('Can withdraw a Rep balance out of sync with standard deposits after close', async () => {
+		const micahClient = createWriteClient(mockWindow, MICAH, 0)
+		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
+		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
+		await deployRepCrowdsourcer(client)
+		const contract = getRepCrowdSourcerAddress()
+		const plenty = 1000000000n * 10n ** 18n
+		const ourAddress = addressString(TEST_ADDRESSES[0])
+		const startingRep = await getErc20TokenBalance(client, repV2TokenAddress, ourAddress)
+
+		// approve
+		await approveErc20Token(client, repV2TokenAddress, contract, plenty)
+		await approveErc20Token(client2, repV2TokenAddress, contract, plenty)
+
+		// deposit large amounts
+		const clientDeposit = 100000n * 10n ** 18n
+		const client2Deposit = clientDeposit * 2n
+		await deposit(client, clientDeposit)
+		await deposit(client2, client2Deposit)
+
+		// Micah withdraws
+		await micahWithdraw(micahClient)
+
+		// Micah then sends additional REP to contract
+		const returnedAmount = clientDeposit * 3n
+		await transferErc20Token(micahClient, repV2TokenAddress, contract, returnedAmount)
+
+		// Initially withdraws have been disabled
+		assert.rejects(withdraw(client))
+
+		// Micah can re-enabled withdraws
+		await micahSetWithdrawsEnabled(micahClient)
+
+		// withdraw from the recipient accounts and get proportional balance
+		await withdraw(client)
+		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep - clientDeposit + returnedAmount / 3n, 'we got rep back plus the additional REP Micah added')
+
+		await withdraw(client2)
+		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep - client2Deposit + returnedAmount * 2n / 3n, 'we got rep back plus the additional REP Micah added')
 	})
 })

@@ -36,7 +36,7 @@ export const getTotalBalance = async (client: ReadClient) => {
 export const getBalance = async (client: ReadClient, address: AccountAddress) => {
 	return await client.readContract({
 		abi: GoFundMicah.abi,
-		functionName: 'deposits',
+		functionName: 'balanceOf',
 		address: getRepCrowdSourcerAddress(),
 		args: [address]
 	})
