@@ -238,7 +238,7 @@ describe('Contract Test Suite', () => {
 		assert.rejects(withdraw(client))
 
 		// Micah can re-enabled withdraws
-		await micahSetWithdrawsEnabled(micahClient, true)
+		await micahSetWithdrawsEnabled(micahClient)
 
 		// withdraw from the recipient accounts and get proportional balance
 		await withdraw(client)

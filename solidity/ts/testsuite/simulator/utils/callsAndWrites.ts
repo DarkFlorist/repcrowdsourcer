@@ -97,12 +97,12 @@ export const micahWithdraw = async (client: WriteClient) => {
 	})
 }
 
-export const micahSetWithdrawsEnabled = async (client: WriteClient, enabled: boolean) => {
+export const micahSetWithdrawsEnabled = async (client: WriteClient) => {
 	return await client.writeContract({
 		abi: GoFundMicah.abi,
 		functionName: 'setWithdrawsEnabled',
 		address: getRepCrowdSourcerAddress(),
-		args: [enabled]
+		args: []
 	})
 }
 
