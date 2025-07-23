@@ -389,15 +389,7 @@ export function App() {
 					<div style = { 'display: flex; align-items: baseline; gap: 0.5em;' }>
 						<button class = { 'button button-primary' } onClick = { buttonWithdraw } disabled = { withdrawButtonDisabled.value }> Return Deposit </button>
 					</div>
-				</div>
-				<div class = 'form-group'>
-					<h3>Micah Section</h3>
-					<p>When contracts balance Reaches { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP Micah can withdraw it all.</p>
-					<div class = 'micah-buttons'>
-						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
-						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
-						<button class = { 'button button-primary' } onClick = { buttonMicahSetWithdrawsEnabled } disabled = { buttonMicahSetWithdrawsEnabledEnabled.value }> Enable Withdraws</button>
-					</div>
+					<p>If contract is closed, mass withdraw any deposit:</p>
 					<div class = 'micah-buttons'>
 						<Input
 							style = 'height: fit-content;'
@@ -424,6 +416,15 @@ export function App() {
 							invalidSignal = { useSignal<boolean>(false) }
 						/>
 						<button class = { 'button button-primary' } onClick = { buttonMassWithdraw } disabled = { massWithdrawButtonDisabled.value }> Return Deposits </button>
+					</div>
+				</div>
+				<div class = 'form-group'>
+					<h3>Micah Section</h3>
+					<p>When contracts balance Reaches { bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP Micah can withdraw it all.</p>
+					<div class = 'micah-buttons'>
+						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahSetWithdrawsEnabled } disabled = { buttonMicahSetWithdrawsEnabledEnabled.value }> Enable Withdraws</button>
 					</div>
 				</div>
 			</div>
