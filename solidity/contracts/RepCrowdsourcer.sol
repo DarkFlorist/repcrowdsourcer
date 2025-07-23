@@ -61,9 +61,9 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 		emit ContractClosed();
 	}
 
-	function setWithdrawsEnabled(bool enabled) public {
+	function setWithdrawsEnabled() public {
 		require(msg.sender == micahAddress, 'Caller is not Micah');
-		withdrawsEnabled = enabled;
+		withdrawsEnabled = true;
 	}
 
 	function recoverERC20(IERC20 token, address recipient) external {
