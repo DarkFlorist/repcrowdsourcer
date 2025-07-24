@@ -396,7 +396,7 @@ export function App() {
 					<div class = 'micah-buttons'>
 						<button class = { 'button button-primary' } onClick = { buttonMicahWithdraw } disabled = { micahWithdrawDisabled.value }> Withdraw & Close</button>
 						<button class = { 'button button-primary' } onClick = { buttonMicahCloseContract } disabled = { micahCloseContractButtonDisabled.value }> Don't Withdraw & Close</button>
-						<button class = { 'button button-primary' } onClick = { buttonMicahSetWithdrawsEnabled } disabled = { buttonMicahSetWithdrawsEnabledEnabled.value }> Enable Withdraws</button>
+						<button class = { 'button button-primary' } onClick = { buttonMicahSetWithdrawsEnabled } disabled = { buttonMicahSetWithdrawsEnabledEnabled.value }> Re-enable Withdraws</button>
 					</div>
 					<div class = 'micah-buttons'>
 						<Input
