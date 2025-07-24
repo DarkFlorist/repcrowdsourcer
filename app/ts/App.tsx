@@ -140,8 +140,8 @@ export function App() {
 
 	const deploy = async () => {
 		const writeClient = maybeWriteClient.deepPeek()
-		if (writeClient === undefined) throw new Error('writeClient missing')
-		if (chainId.value !== 1) throw new Error('wrong netwrok')
+		if (writeClient === undefined) return handleUnexpectedError(new Error('writeClient missing'))
+		if (chainId.value !== 1) return handleUnexpectedError(new Error('wrong network'))
 		await deployRepCrowdsourcer(writeClient)
 		isDeployed.deepValue = true
 	}
@@ -274,40 +274,40 @@ export function App() {
 	}
 
 	const buttonDeposit = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0) throw new Error('Deposit amount not set to non negative value')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
+		if (depositRepInput.deepValue === undefined || depositRepInput.deepValue <= 0) return handleUnexpectedError(new Error('Deposit amount not set to non negative value'))
 		await deposit(maybeWriteClient.deepValue, depositRepInput.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonWithdraw = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
 		await withdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 	const buttonMassWithdraw = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (withdrawAddreses.deepValue === undefined || withdrawAddreses.deepValue.length === 0) throw new Error('Withdraw amount not set to non negative value')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
+		if (withdrawAddreses.deepValue === undefined || withdrawAddreses.deepValue.length === 0) return handleUnexpectedError(new Error('Withdraw amount not set to non negative value'))
 		await massWithdraw(maybeWriteClient.deepValue, withdrawAddreses.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahCloseContract = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (isMicah.value !== true) throw new Error('you are not micah!')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
+		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahCloseContract(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahWithdraw = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (isMicah.value !== true) throw new Error('you are not micah!')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
+		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahWithdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahSetWithdrawsEnabled = async () => {
-		if (maybeWriteClient.deepValue === undefined) throw new Error('wallet not connected')
-		if (isMicah.value !== true) throw new Error('you are not micah!')
+		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
+		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahSetWithdrawsEnabled(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
