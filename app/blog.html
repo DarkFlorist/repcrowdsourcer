@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Micah Zoltu - Augur Fork Initiative</title>
+	<style title="Switches">
+		:root {
+			--bg-color: #121212;
+			--text-color: lightgrey;
+			--switch-bg: #333;
+			--switch-circle: #fff;
+			&:has(#theme-toggle:checked) {
+				--bg-color: white;
+				--text-color: black;
+				--switch-bg: #ccc;
+				--switch-circle: #333;
+			}
+		}
+
+		#switches {
+			display: flex;
+			gap: 10px;
+			justify-content: center;
+			.switch-container {
+				position: relative;
+				display: inline-block;
+				user-select: none;
+				width: 60px;
+				height: 34px;
+				& input[type="checkbox"] {
+					display: none;
+					&:checked+.switch::before {
+						transform: translateX(26px);
+					}
+				}
+				& .switch {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+					cursor: pointer;
+					background-color: var(--switch-bg);
+					border-radius: 34px;
+					&::before {
+						content: "";
+						position: absolute;
+						height: 26px;
+						width: 26px;
+						left: 4px;
+						bottom: 4px;
+						background-color: var(--switch-circle);
+						transition: 0.4s;
+						border-radius: 50%;
+					}
+					& .icon {
+						position: absolute;
+						font-size: 1.2rem;
+						&.left {
+							left: 4px;
+						}
+						&.right {
+							right: 3px;
+							top: 1px;
+						}
+					}
+				}
+			}
+		}
+	</style>
+	<style>
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			line-height: 1.6;
+			padding: 40px 20px;
+			max-width: 900px;
+			margin: auto;
+			background-color: var(--bg-color);
+			color: var(--text-color);
+			&:has(#widescreen-toggle:checked) {
+				max-width: none;
+			}
+		}
+
+		h2 {
+			& a {
+				display: none;
+				&:hover { text-decoration: none; }
+			}
+			&:hover a { display: inline-block; }
+		}
+
+		p { margin-bottom: 15px; }
+
+		ul {
+			padding-left: 20px;
+			margin-bottom: 20px;
+		}
+
+		a {
+			color: #3498db;
+			text-decoration: none;
+			&:hover { text-decoration: underline; }
+		}
+
+		.section {
+			margin-bottom: 40px;
+		}
+
+		.signature {
+			font-style: italic;
+			color: #777;
+			margin-top: 30px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="switches">
+		<div class="switch-container">
+			<input type="checkbox" id="theme-toggle">
+			<label for="theme-toggle" class="switch">
+				<span class="icon left">🌙</span>
+				<span class="icon right">☀️</span>
+			</label>
+		</div>
+		<div class="switch-container">
+			<input type="checkbox" id="widescreen-toggle">
+			<label for="widescreen-toggle" class="switch">
+				<span class="icon left">➖</span>
+				<span class="icon right">➕</span>
+			</label>
+		</div>
+	</div>
+		
+	</div>
+	<article>
+		<div class="section">
+			If a newer version of this post is available, it will be available at <a href="https://listed.to/authors/33689">Micah Zoltu on Listed.to</a>.
+
+			<h2 id="who-am-i">Who Am I</h2>
+			<p>I am Micah Zoltu. You may know me from my past hits like:</p>
+			<ul>
+				<li><a href="https://github.com/micahzoltu" target="_blank">GitHub</a></li>
+				<li><a href="https://dark.florist/#about-us" target="_blank">Company Website</a></li>
+				<li><a href="https://objects.githubusercontent.com/github-production-release-asset-2e65be/129822201/279e73c3-42e7-4c04-88b0-cd4511192f22?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=releaseassetproduction%2F20250608%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20250608T102305Z&X-Amz-Expires=300&X-Amz-Signature=8097d26cdb809c88a23c33adca9651d1caef3d674872a3e56e2c12007c611d0c&X-Amz-SignedHeaders=host&response-content-disposition=attachment%3B%20filename%3Daugur-whitepaper-v2.pdf&response-content-type=application%2Foctet-stream" target="_blank">Augur v2 Whitepaper</a></li>
+				<li><a href="https://listed.to/authors/33689" target="_blank">Blog on Listed.to</a></li>
+				<li><a href="https://micah-zoltu.medium.com/" target="_blank">Blog on Medium.com</a></li>
+				<li><a href="https://stackoverflow.com/users/879046/micah-zoltu" target="_blank">Stack Overflow</a></li>
+				<li><a href="https://stackexchange.com/users/471322/micah-zoltu" target="_blank">Stack Exchange</a></li>
+				<li><a href="https://eips.ethereum.org/EIPS/eip-1#eip-editors" target="_blank">EIP Editor</a></li>
+				<li><a href="https://twitter.com/MicahZoltu" target="_blank">Twitter</a></li>
+				<li><a href="https://discord.gg/rvDWHre8SH" target="_blank">Discord</a> - @sky.cactus</li>
+			</ul>
+		</div>
+
+		<div class="section">
+			<h2 id="summary">Summary<a href="#summary">🔗</a></h2>
+			<p>My team (Dark Florists) have gotten back into Augur development in hopes of rekindling what we believe is the best option for a truly permissionless and censorship resistant prediction market platform on the internet. One of the critical components for many such designs of Augur is that REP holders be actively paying attention to Augur and not just passively holding REP tokens. Ever since the launch of Augur v1, we have been telling people that REP is not a passive yielding asset and it is an active asset that requires engagement from users. This required engagement has historically been 0, but there has always been a Sword of Damocles hanging over REP holders in the form of the possibility of the system forking. By design, the system ideally will never fork because it isn't profitable to do so, but this has resulted in many REP holders no longer paying attention. I have setup a crowdsourcing contract to socialize the funding of a fork of Augur (participants will lose the REP they put in!) in hopes that we can trigger a fork and get the set of REP holders back down to the set of people who are actually paying attention.</p>
+		</div>
+
+		<div class="section">
+			<h2 id="problem-with-passivity">The Problem With Passivity<a href="#problem-with-passivity">🔗</a></h2>
+			<p>Augur's mechanism design, and most ideas for future mechanism designs of Augur, require REP holders be paying attention. REP holders receive fees from the system and in exchange for receiving those fees they take on risk of oracle failure, as well as commit to participating in forks when they are necessary. In most designs if REP holders stop paying attention, attacks against the system become cheaper and possibly profitable.</p>
+		</div>
+
+		<div class="section">
+			<h2 id="solutions-to-passivity">Solutions To Passivity<a href="#solutions-to-passivity">🔗</a></h2>
+			<p>One solution to the problem of passivity is to periodically run the system through a filter that gets rid of anyone who isn't paying attention. If Augur was being attacked regularly, this would happen naturally. However, since the system was designed to be unprofitable to be attacked, if everything works as intended then such attacks will never happen and we'll never have a natural filter for passive REP holders.</p>
+			<p>Another possibility is to filter out passive holders during a "contract upgrade". The problem here is that since Augur is a truly permissionless system, contract upgrades are opt-in, not opt-out. Users are not forced to "upgrade" to a "new" version of Augur. Anyone can propose an "upgrade", including malicious actors, so there is no One True Augur. There has been a single Augur "upgrade" in Augur's history which was from v1 to v2, and while most people did migrate to it, many didn't and we cannot know for certain whether it is because they are asleep, or because they do not think Augur v2 is actually an upgrade over Augur v1. On top of that, deciding whether to participate in a one-way migration requires reviewing the code, reaching out to your trust network, maybe waiting a while to see if any bugs are found, etc. This whole process is much more complicated than participating in a forking game that you already signed up to play.</p>
+			<p>The last solution, which is what we are trying to do here, is to have some people sacrifice some of their own REP in order to trigger a fork. The same attack that any attacker can do would occur, but this one would be designed to be as clean and clear as possible, with no upside potential for the "attackers". It costs about 200,000 REP to execute this attack, and while it _may_ be possible to recoup some of that cost by playing both sides of the forking game it should be assumed that the attacker will lose all of it. Once the fork is triggered, all REP holders will be forced to choose which universe to participate in (the one that aligns with truth, or the one that aligns with a lie) or their REP will become forever locked in the pre-fork version of Augur, never usable for anything in the future (essentially just a meme coin).</p>
+		</div>
+
+		<div class="section">
+			<h2 id="how-to">How To<a href="#how-to">🔗</a></h2>
+			<p>In theory, we could try to build a totally trustless system that would execute the attack, but the development costs for something like that would be on the scale of "building Augur v3" and likely not worth it since it is very possible we wouldn't be able to raise 200,000 REP in donations to execute the attack. Instead, we have decided to go with a GoFundMicah strategy where we have a very simple contract that anyone can send REP to, and if it reaches the target threshold of REP then Micah (me) can withdraw that REP and use it how he sees fit. I (Micah) am committing here (and will confirm in other mediums as desired) to use the REP solely for the purpose of triggering an Augur fork. If for some reason I am unable to accomplish this task, I will do my best to return the REP to everyone who contributed. This is a 100% trusted endeavor! If you don't trust Micah, you should definitely not participate in this scheme. Up until the threshold is reached I will have no custody of any contributed REP and you can withdraw at any time, but if the threshold is reached then the REP is effectively given to me and will be in my sole control. The address the contract points at is a Gnosis SAFE with a recovery system in place in case I become incapacitated, and as with all money under my control I will endeavor to protect the assets the same way I do my other assets.</p>
+		</div>
+
+		<div class="section">
+			<h2 id="why-contribute">Why Contribute?<a href="#why-contribute">🔗</a></h2>
+			<p>Donating is, on the surface, a purely lossy strategy. However, there may be some reasons a person may want to contribute:</p>
+			<ul>
+				<li>They think that Augur's best chance of future success is to clear out non-participatory and lost REP from the system.</li>
+				<li>They believe that the publicity from such a stunt will increase the REP price and thus increase the value of any REP they don't contribute.</li>
+				<li>They believe that there is so much sleeping REP that will be expunged during the fork that their relative share of _all_ REP in existence will increase substantially.</li>
+				<li>They just like to watch the world burn.</li>
+				<li>They are curious to witness the forking mechanism in action, even if it is in a contrived scenario.</li>
+			</ul>
+			<p>It cannot be overstated, any REP contributed to the crowdsource contract should be treated as a donation and there should be no expectations of returns on investment. The contributed REP will be used to trigger an Augur fork and become worthless in the process.</p>
+		</div>
+
+		<div class="section">
+			<h2 id="what-if-i-lose">What If I Lose?</h2>
+			<p>This crowdsourcer is only attempting to raise 200,000 REP.  Under many expected scenarios this is sufficient to dispute a market to a fork.  However, it is possible that a particularly clever attacker may try to prevent a fork from occurring (at a loss to themselves) in which case we may not be able to afford a fork.  In such a situation some REP will be lost in the attempt, but much should be able to be retained.  If there is enough remaining to try again I will do that.  If there is not enough to try again, or it is deemed too risky to try again, then any remaining REP will be returned to the contract and the contract will be opened up for withdraws by the original depositors, proportionate to how much they put in.</p>
+		</div>
+
+		<div class="section">
+			<h2 id="take-my-money">Take My Money!</h2>
+			<p>If you would like to contribute, even after being told you'll lose all of your money, you can do so via a little <a href="../index.html">app</a> built just for this.</p>
+		</div>
+
+		<div class="signature">
+			<p>— Micah Zoltu</p>
+		</div>
+	</article>
+</body>
+</html>
