@@ -351,7 +351,7 @@ export function App() {
 				<div class = 'form-group highlight'>
 					<h3>Fund AugurV2 Fork</h3>
 					<p>
-						Deposit REP to { <EtherScanAddress name = { 'REP Crowdsourcer' } address = { useComputed(() => getRepCrowdSourcerAddress()) }/> } that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost. Please find Micah's more detailed explanation from <a href = '/blog.html' target = '_blank' rel = 'noopener noreferrer'>Who Am I</a>.
+						Deposit REP to { <EtherScanAddress name = { 'REP Crowdsourcer' } address = { useComputed(() => getRepCrowdSourcerAddress()) }/> } that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost. Please find Micah's more detailed explanation at <a href = '/blog.html' target = '_blank' rel = 'noopener noreferrer'>Go Fund Micah Announcement</a>.
 						<br/><br/>
 						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to <EtherScanAddress name = { 'Micah' } address = { micahAddress.value }/>. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
 						<br/><br/>
