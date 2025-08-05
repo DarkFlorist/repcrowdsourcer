@@ -81,6 +81,9 @@ const compile = async () => {
 	const artifactsDir = path.join(process.cwd(), 'artifacts')
 	if (!await exists(artifactsDir)) await fs.mkdir(artifactsDir, { recursive: false })
 	await fs.writeFile(path.join(artifactsDir, 'RepCrowdsourcer.json'), output)
+	console.log('standard input:')
+	console.log(JSON.stringify(input))
+	await fs.writeFile(path.join(artifactsDir, 'RepCrowdsourcer_standard_input.json'), JSON.stringify(input))
 }
 
 compile().catch(error => {
