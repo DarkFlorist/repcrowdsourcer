@@ -211,6 +211,7 @@ export function App() {
 		if (ourBalance.deepValue === undefined) return true
 		if (ourBalance.deepValue <= 0n) return true
 		if (chainId.value !== 1) return true
+		if (contractWithdrawsEnabled.deepValue !== true) return true
 		return false
 	})
 
@@ -345,7 +346,7 @@ export function App() {
 			</div> : <></> }
 			<div class = 'form-grid'>
 				{ depositsEnabled.deepValue === false ? <div class = 'warning-box'>
-					<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
+					<p> REP Crowdsourcer has been closed. Users with a balance in the contract can withdraw it. Deposits are closed.</p>
 				</div> : <></> }
 
 				<div class = 'form-group highlight'>
