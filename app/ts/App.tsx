@@ -6,7 +6,7 @@ import { getChainId } from 'viem/actions'
 import { useEffect } from 'preact/hooks'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
 import { approveErc20Token, getAllowanceErc20Token, getErc20TokenBalance } from './utils/erc20.js'
-import { deposit, getBalance, getContractClosed, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, getWithdrawsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
+import { deposit, getBalance, getDepositsEnabled, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, getWithdrawsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
 import { Input } from './utils/Input.js'
 import { printError } from './utils/misc.js'
 import { UnexpectedError } from './utils/error.js'
@@ -78,7 +78,7 @@ export function App() {
 	const totalBalance = useOptionalSignal<bigint>(undefined)
 	const requiredBalance = useOptionalSignal<bigint>(undefined)
 	const ourBalance = useOptionalSignal<bigint>(undefined)
-	const contractClosed = useOptionalSignal<boolean>(undefined)
+	const depositsEnabled = useOptionalSignal<boolean>(undefined)
 	const contractWithdrawsEnabled = useOptionalSignal<boolean>(undefined)
 	const allowedRep = useOptionalSignal<bigint>(undefined)
 
@@ -169,7 +169,7 @@ export function App() {
 		if (readClient === undefined) return
 		micahAddress.deepValue = await getMicahAddress(readClient)
 		totalBalance.deepValue = await getTotalBalance(readClient)
-		contractClosed.deepValue = await getContractClosed(readClient)
+		depositsEnabled.deepValue = await getDepositsEnabled(readClient)
 		requiredBalance.deepValue = await getMinBalanceToWithdraw(readClient)
 		if (account.deepValue === undefined) return
 		if (writeClient === undefined) return
@@ -189,7 +189,7 @@ export function App() {
 	const depositInputDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
 		if (allowedRep.deepValue === undefined) return true
-		if (contractClosed.deepValue === true) return true
+		if (depositsEnabled.deepValue === false) return true
 		if (chainId.value !== 1) return true
 		return false
 	})
@@ -216,7 +216,7 @@ export function App() {
 
 	const massWithdrawInputDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
-		if (contractClosed.deepValue !== true) return true
+		if (depositsEnabled.deepValue !== false) return true
 		if (chainId.value !== 1) return true
 		return false
 	})
@@ -230,7 +230,7 @@ export function App() {
 
 	const micahCloseContractButtonDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
-		if (contractClosed.deepValue === true) return true
+		if (depositsEnabled.deepValue === false) return true
 		if (!isMicah.value) return true
 		if (chainId.value !== 1) return true
 		return false
@@ -344,7 +344,7 @@ export function App() {
 				<p> Please switch to mainnet </p>
 			</div> : <></> }
 			<div class = 'form-grid'>
-				{ contractClosed.deepValue ? <div class = 'warning-box'>
+				{ depositsEnabled.deepValue === false ? <div class = 'warning-box'>
 					<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
 				</div> : <></> }
 
