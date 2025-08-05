@@ -19,7 +19,7 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 	event MicahWithdraw(uint256 amount);
 	event TokenRecovered(IERC20 tokenAddress, address recipient, uint256 amount);
 
-	function deposit(uint256 amount) public {
+	function deposit(uint256 amount) external {
 		require(depositsEnabled, 'Deposits disabled');
 		repV2.transferFrom(msg.sender, address(this), amount);
 		_mint(msg.sender, amount);
@@ -35,24 +35,24 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 		emit Withdraw(recipient, proportionalBalance);
 	}
 
-	function withdraw() public {
+	function withdraw() external {
 		internalWithdraw(msg.sender);
 	}
 
-	function massWithdraw(address[] calldata recipients) public {
+	function massWithdraw(address[] calldata recipients) external {
 		require(!depositsEnabled, 'Deposits must be disabled');
 		for (uint256 i = 0; i < recipients.length; ++i) {
 			internalWithdraw(recipients[i]);
 		}
 	}
 
-	function micahCloseContract() public {
+	function micahCloseContract() external {
 		require(msg.sender == micahAddress, 'Caller is not Micah!');
 		depositsEnabled = false;
 		emit DepositsDisabled();
 	}
 
-	function micahWithdraw() public {
+	function micahWithdraw() external {
 		require(msg.sender == micahAddress, 'Caller is not Micah!');
 		uint256 balance = repV2.balanceOf(address(this));
 		require(balance >= minBalanceToWithdraw, 'Not enough balance');
@@ -64,7 +64,7 @@ contract GoFundMicah is ERC20('GoFundMicah', 'GFM') {
 		emit DepositsDisabled();
 	}
 
-	function setWithdrawsEnabled() public {
+	function setWithdrawsEnabled() external {
 		require(msg.sender == micahAddress, 'Caller is not Micah');
 		withdrawsEnabled = true;
 		emit WithdrawsEnabled();
