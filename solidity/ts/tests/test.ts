@@ -6,7 +6,7 @@ import { mintDAI, setupTestAccounts } from '../testsuite/simulator/utils/utiliti
 import assert from 'node:assert'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from '../testsuite/simulator/utils/deployment.js'
 import { approveErc20Token, getErc20TokenBalance, transferErc20Token } from '../testsuite/simulator/utils/erc20.js'
-import { deposit, getBalance, getContractClosed, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
+import { deposit, getBalance, getdepositsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
 import { addressString } from '../testsuite/simulator/utils/bigint.js'
 
 describe('Contract Test Suite', () => {
@@ -21,7 +21,7 @@ describe('Contract Test Suite', () => {
 		await deployRepCrowdsourcer(client)
 		const isDeployed = await isRepCrowdSourcerDeployed(client)
 		assert.ok(isDeployed, 'Not Deployed!')
-		assert.strictEqual(await getContractClosed(client), false)
+		assert.strictEqual(await getdepositsEnabled(client), true)
 	})
 
 	test('Can Do Happy Path', async () => {
@@ -70,7 +70,7 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, micahAddressString), micahStartRep + enoughRepToTrigger, 'micah got the rep')
 
 		// contract closed
-		assert.strictEqual(await getContractClosed(client), true, 'contract is closed')
+		assert.strictEqual(await getdepositsEnabled(client), false, 'contract is closed')
 		await assert.rejects(deposit(client, oneTimeDeposit), 'Deposits are closed')
 	})
 
@@ -102,7 +102,7 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, contract), oneTimeDeposit, 'contract still has the rep')
 
 		// contract closed
-		assert.strictEqual(await getContractClosed(client), true, 'contract is closed')
+		assert.strictEqual(await getdepositsEnabled(client), false, 'contract is closed')
 		await assert.rejects(deposit(client, oneTimeDeposit), 'Deposits are closed')
 
 		// micah can mass withdraw
