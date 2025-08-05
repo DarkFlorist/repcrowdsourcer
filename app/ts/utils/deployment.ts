@@ -1,6 +1,8 @@
 import { getContractAddress, numberToBytes } from 'viem'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
 import { GoFundMicah } from '../VendoredRepCrowdsourcer.js'
+import { getSafeAddress, getSafeOwnerAddresses } from './callsAndWrites.js'
+import { execTransaction } from './safe.js'
 
 const PROXY_DEPLOYER_ADDRESS = '0x7a0d94f55792c434d74a40883c6ed8545e406d12'
 
@@ -15,7 +17,11 @@ export const deployRepCrowdsourcerTransaction = () => {
 }
 
 export const deployRepCrowdsourcer = async (client: WriteClient) => {
-	const hash = await client.sendTransaction(deployRepCrowdsourcerTransaction())
+	const deploymentTransaction = deployRepCrowdsourcerTransaction()
+	const safeOwners = await getSafeOwnerAddresses(client)
+	const hash = (safeOwners.some(safeOwner => BigInt(safeOwner) === BigInt(client.account.address)))
+		? await execTransaction(client, getSafeAddress(), deploymentTransaction.to, deploymentTransaction.data)
+		: await client.sendTransaction(deploymentTransaction)
 	await client.waitForTransactionReceipt({ hash })
 }
 

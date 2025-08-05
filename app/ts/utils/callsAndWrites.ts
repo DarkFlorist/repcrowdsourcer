@@ -3,16 +3,23 @@ import { AccountAddress } from '../types/types.js'
 import { GoFundMicah } from '../VendoredRepCrowdsourcer.js'
 import { getRepCrowdSourcerAddress } from './deployment.js'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
+import { encodeFunctionData } from 'viem'
+import { execTransaction, getOwners } from './safe.js'
 
 export const repV2TokenAddress = '0x221657776846890989a759BA2973e427DfF5C9bB'
 
-export const getMicahAddress = async (client: ReadClient) => {
-	return await client.readContract({
-		abi: GoFundMicah.abi,
-		functionName: 'micahAddress',
-		address: getRepCrowdSourcerAddress(),
-		args: []
-	})
+export const getSafeAddress = () => {
+	return '0xed1e06B49C53293A1321Dd47Abf8D50F9Be77E11' as const
+	// return await client.readContract({
+	// 	abi: GoFundMicah.abi,
+	// 	functionName: 'micahAddress',
+	// 	address: getRepCrowdSourcerAddress(),
+	// 	args: [],
+	// })
+}
+
+export const getSafeOwnerAddresses = async (client: ReadClient) => {
+	return await getOwners(client, getSafeAddress())
 }
 
 export const getMinBalanceToWithdraw = async (client: ReadClient) => {
@@ -79,30 +86,30 @@ export const massWithdraw = async (client: WriteClient, addresses: AccountAddres
 }
 
 export const micahCloseContract = async (client: WriteClient) => {
-	return await client.writeContract({
+	const encoded = encodeFunctionData({
 		abi: GoFundMicah.abi,
 		functionName: 'micahCloseContract',
-		address: getRepCrowdSourcerAddress(),
 		args: []
 	})
+	return await execTransaction(client, getSafeAddress(), getRepCrowdSourcerAddress(), encoded)
 }
 
 export const micahWithdraw = async (client: WriteClient) => {
-	return await client.writeContract({
+	const encoded = encodeFunctionData({
 		abi: GoFundMicah.abi,
 		functionName: 'micahWithdraw',
-		address: getRepCrowdSourcerAddress(),
 		args: []
 	})
+	return await execTransaction(client, getSafeAddress(), getRepCrowdSourcerAddress(), encoded)
 }
 
 export const micahSetWithdrawsEnabled = async (client: WriteClient) => {
-	return await client.writeContract({
+	const encoded = encodeFunctionData({
 		abi: GoFundMicah.abi,
 		functionName: 'setWithdrawsEnabled',
-		address: getRepCrowdSourcerAddress(),
 		args: []
 	})
+	return await execTransaction(client, getSafeAddress(), getRepCrowdSourcerAddress(), encoded)
 }
 
 export const getWithdrawsEnabled = async (client: ReadClient) => {
