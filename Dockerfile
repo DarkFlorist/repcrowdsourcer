@@ -2,7 +2,7 @@
 # App Setup: Install dependencies and build app
 # ---------------------------------------------
 
-FROM node:20-alpine3.19@sha256:e96618520c7db4c3e082648678ab72a49b73367b9a1e7884cf75ac30a198e454 as builder
+FROM node:20-alpine3.19@sha256:e96618520c7db4c3e082648678ab72a49b73367b9a1e7884cf75ac30a198e454 AS builder
 
 # Install app dependencies
 COPY ./package.json /source/package.json
@@ -10,24 +10,30 @@ COPY ./package-lock.json /source/package-lock.json
 WORKDIR /source
 RUN npm ci
 
-# contracts
-COPY ./solidity/contracts/ /source/solidity/contracts/
+# Install Solidity dependencies
 COPY ./solidity/package.json /source/solidity/package.json
 COPY ./solidity/package-lock.json /source/solidity/package-lock.json
-COPY ./solidity/ts/ /source/solidity/ts/
-COPY ./solidity/tsconfig-compile.json /source/solidity/tsconfig-compile.json
-COPY ./solidity/tsconfig.json /source/solidity/tsconfig.json
+WORKDIR /source/solidity
+RUN npm ci
 
 # Vendoring files
-COPY ./build/ /source/build/
 COPY ./tsconfig.vendor.json /source/tsconfig.vendor.json
+COPY ./build/ /source/build/
 COPY ./app/index.html /source/app/index.html
+
+# Contracts
+WORKDIR /source
+COPY ./solidity/tsconfig.json /source/solidity/tsconfig.json
+COPY ./solidity/tsconfig-compile.json /source/solidity/tsconfig-compile.json
+COPY ./solidity/contracts/ /source/solidity/contracts/
+COPY ./solidity/ts/ /source/solidity/ts/
 
 # Buld the app
 COPY ./tsconfig.json /source/tsconfig.json
 COPY ./app/css/ /source/app/css/
 COPY ./app/ts/ /source/app/ts/
 COPY ./app/favicon.ico /source/app/favicon.ico
+COPY ./app/blog.html /source/app/blog.html
 RUN npm run setup
 
 # --------------------------------------------------------
@@ -35,7 +41,7 @@ RUN npm run setup
 # --------------------------------------------------------
 
 # Cache the kubo image
-FROM ipfs/kubo:v0.25.0@sha256:0c17b91cab8ada485f253e204236b712d0965f3d463cb5b60639ddd2291e7c52 as ipfs-kubo
+FROM ipfs/kubo:v0.25.0@sha256:0c17b91cab8ada485f253e204236b712d0965f3d463cb5b60639ddd2291e7c52 AS ipfs-kubo
 
 # Create the base image
 FROM debian:12.6-slim@sha256:39868a6f452462b70cf720a8daff250c63e7342970e749059c105bf7c1e8eeaf
@@ -63,7 +69,7 @@ RUN cat ipfs_hash.txt
 # Publish Script: Option to host app locally or on nft.storage
 # --------------------------------------------------------
 
-WORKDIR ~
+WORKDIR /temp
 COPY <<'EOF' /entrypoint.sh
 #!/bin/sh
 set -e
