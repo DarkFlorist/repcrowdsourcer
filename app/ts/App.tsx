@@ -172,7 +172,7 @@ export function App() {
 		safeOwnerAddresses.deepValue = await getSafeOwnerAddresses(readClient)
 		totalBalance.deepValue = await getTotalBalance(readClient)
 		depositsEnabled.deepValue = await getDepositsEnabled(readClient)
-		requiredBalance.deepValue = await getMinBalanceToWithdraw(readClient)
+		requiredBalance.deepValue = getMinBalanceToWithdraw()
 		if (account.deepValue === undefined) return
 		if (writeClient === undefined) return
 		allowedRep.deepValue = await getAllowanceErc20Token(readClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())

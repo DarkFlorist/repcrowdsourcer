@@ -3,7 +3,7 @@ import { AccountAddress } from '../types/types.js'
 import { GoFundMicah } from '../VendoredRepCrowdsourcer.js'
 import { getRepCrowdSourcerAddress } from './deployment.js'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
-import { encodeFunctionData } from 'viem'
+import { encodeFunctionData, parseEther } from 'viem'
 import { execTransaction, getOwners } from './safe.js'
 
 export const repV2TokenAddress = '0x221657776846890989a759BA2973e427DfF5C9bB'
@@ -22,13 +22,14 @@ export const getSafeOwnerAddresses = async (client: ReadClient) => {
 	return await getOwners(client, getSafeAddress())
 }
 
-export const getMinBalanceToWithdraw = async (client: ReadClient) => {
-	return await client.readContract({
-		abi: GoFundMicah.abi,
-		functionName: 'minBalanceToWithdraw',
-		address: getRepCrowdSourcerAddress(),
-		args: []
-	})
+export const getMinBalanceToWithdraw = () => {
+	return parseEther('200000')
+	// return await client.readContract({
+	// 	abi: GoFundMicah.abi,
+	// 	functionName: 'minBalanceToWithdraw',
+	// 	address: getRepCrowdSourcerAddress(),
+	// 	args: []
+	// })
 }
 
 export const getTotalBalance = async (client: ReadClient) => {
