@@ -6,7 +6,7 @@ import { getChainId } from 'viem/actions'
 import { useEffect } from 'preact/hooks'
 import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDeployed } from './utils/deployment.js'
 import { approveErc20Token, getAllowanceErc20Token, getErc20TokenBalance } from './utils/erc20.js'
-import { deposit, getBalance, getDepositsEnabled, getMicahAddress, getMinBalanceToWithdraw, getTotalBalance, getWithdrawsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, repV2TokenAddress, withdraw } from './utils/callsAndWrites.js'
+import { deposit, getBalance, getDepositsEnabled, getSafeAddress, getMinBalanceToWithdraw, getTotalBalance, getWithdrawsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, repV2TokenAddress, withdraw, getSafeOwnerAddresses } from './utils/callsAndWrites.js'
 import { Input } from './utils/Input.js'
 import { printError } from './utils/misc.js'
 import { UnexpectedError } from './utils/error.js'
@@ -74,7 +74,8 @@ export function App() {
 
 	const ethBalance = useOptionalSignal<bigint>(undefined)
 	const repBalance = useOptionalSignal<bigint>(undefined)
-	const micahAddress = useOptionalSignal<AccountAddress>(undefined)
+	const safeAddress = useOptionalSignal<AccountAddress>(undefined)
+	const safeOwnerAddresses = useOptionalSignal<readonly AccountAddress[]>(undefined)
 	const totalBalance = useOptionalSignal<bigint>(undefined)
 	const requiredBalance = useOptionalSignal<bigint>(undefined)
 	const ourBalance = useOptionalSignal<bigint>(undefined)
@@ -167,10 +168,11 @@ export function App() {
 	const refresh = async (readClient: ReadClient | undefined, writeClient: WriteClient | undefined, isDeployed: boolean | undefined, chainId: number | undefined) => {
 		if (isDeployed !== true) return
 		if (readClient === undefined) return
-		micahAddress.deepValue = await getMicahAddress(readClient)
+		safeAddress.deepValue = getSafeAddress()
+		safeOwnerAddresses.deepValue = await getSafeOwnerAddresses(readClient)
 		totalBalance.deepValue = await getTotalBalance(readClient)
 		depositsEnabled.deepValue = await getDepositsEnabled(readClient)
-		requiredBalance.deepValue = await getMinBalanceToWithdraw(readClient)
+		requiredBalance.deepValue = getMinBalanceToWithdraw()
 		if (account.deepValue === undefined) return
 		if (writeClient === undefined) return
 		allowedRep.deepValue = await getAllowanceErc20Token(readClient, repV2TokenAddress, account.deepValue, getRepCrowdSourcerAddress())
@@ -180,10 +182,12 @@ export function App() {
 	}
 	useSignalEffect(() => { refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError) })
 
-	const isMicah = useComputed(() => {
-		if (maybeWriteClient.deepValue === undefined) return false
-		if (micahAddress.deepValue === undefined) return false
-		return BigInt(maybeWriteClient.deepValue.account.address) === BigInt(micahAddress.deepValue)
+	const isSafeOwner = useComputed(() => {
+		const connectedAddress = maybeWriteClient.deepValue
+		if (connectedAddress === undefined) return false
+		if (safeOwnerAddresses.deepValue === undefined) return false
+		if (safeOwnerAddresses.deepValue.length === 0) return false
+		return safeOwnerAddresses.deepValue.some(safeOwner => BigInt(safeOwner) === BigInt(connectedAddress.account.address))
 	})
 
 	const depositInputDisabled = useComputed(() => {
@@ -211,6 +215,7 @@ export function App() {
 		if (ourBalance.deepValue === undefined) return true
 		if (ourBalance.deepValue <= 0n) return true
 		if (chainId.value !== 1) return true
+		if (contractWithdrawsEnabled.deepValue !== true) return true
 		return false
 	})
 
@@ -231,13 +236,13 @@ export function App() {
 	const micahCloseContractButtonDisabled = useComputed(() => {
 		if (isDeployed.deepValue !== true) return true
 		if (depositsEnabled.deepValue === false) return true
-		if (!isMicah.value) return true
+		if (!isSafeOwner.value) return true
 		if (chainId.value !== 1) return true
 		return false
 	})
 
 	const buttonMicahSetWithdrawsEnabledDisabled = useComputed(() => {
-		if (!isMicah.value) return true
+		if (!isSafeOwner.value) return true
 		if (contractWithdrawsEnabled.deepValue) return true
 		return false
 	})
@@ -293,21 +298,21 @@ export function App() {
 
 	const buttonMicahCloseContract = async () => {
 		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
-		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
+		if (isSafeOwner.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahCloseContract(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahWithdraw = async () => {
 		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
-		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
+		if (isSafeOwner.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahWithdraw(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
 
 	const buttonMicahSetWithdrawsEnabled = async () => {
 		if (maybeWriteClient.deepValue === undefined) return handleUnexpectedError(new Error('wallet not connected'))
-		if (isMicah.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
+		if (isSafeOwner.value !== true) return handleUnexpectedError(new Error('you are not micah!'))
 		await micahSetWithdrawsEnabled(maybeWriteClient.deepValue).catch(handleUnexpectedError)
 		await refresh(maybeReadClient.deepValue, maybeWriteClient.deepValue, isDeployed.deepValue, chainId.value).catch(handleUnexpectedError)
 	}
@@ -345,7 +350,7 @@ export function App() {
 			</div> : <></> }
 			<div class = 'form-grid'>
 				{ depositsEnabled.deepValue === false ? <div class = 'warning-box'>
-					<p> REP Crowdsourcer has been closed. Users having a balance in the contract can withdraw it. Deposits are closed.</p>
+					<p> REP Crowdsourcer has been closed. Users with a balance in the contract can withdraw it. Deposits are closed.</p>
 				</div> : <></> }
 
 				<div class = 'form-group highlight'>
@@ -353,7 +358,7 @@ export function App() {
 					<p>
 						Deposit REP to { <EtherScanAddress name = { 'REP Crowdsourcer' } address = { useComputed(() => getRepCrowdSourcerAddress()) }/> } that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost. Please find Micah's more detailed explanation at <a href = '/blog.html' target = '_blank' rel = 'noopener noreferrer'>Go Fund Micah Announcement</a>.
 						<br/><br/>
-						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to <EtherScanAddress name = { 'Micah' } address = { micahAddress.value }/>. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
+						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to <EtherScanAddress name = { 'Micah' } address = { safeAddress.value }/>. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
 						<br/><br/>
 						To deposit funds, input the deposit amount and allow crowdsourcer to spend that amount, then initiate the actual deposit. Current allowance: <b>{ bigintToDecimalStringWithUnknownAndPracticallyInfinite(allowedRep.deepValue, 18n, 2) } REP.</b>
 					</p>
