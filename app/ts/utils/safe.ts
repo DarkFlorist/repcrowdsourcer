@@ -4,7 +4,7 @@ import { SAFE_ABI } from '../ABI/SafeAbi.js'
 import { AccountAddress } from '../types/types.js'
 import { ReadClient, WriteClient } from './ethereumWallet.js'
 
-export const getOwners = async (readClient: ReadClient, safeAddress: `0x${string}`) => {
+export const getOwners = async (readClient: ReadClient, safeAddress: `0x${ string }`) => {
 	return await readClient.readContract({
 		abi: SAFE_ABI,
 		functionName: 'getOwners',
@@ -13,7 +13,7 @@ export const getOwners = async (readClient: ReadClient, safeAddress: `0x${string
 	})
 }
 
-export const execTransaction = async (writeClient: WriteClient, safeAddress: `0x${string}`, to: AccountAddress, data: `0x${string}`) => {
+export const execTransaction = async (writeClient: WriteClient, safeAddress: `0x${ string }`, to: AccountAddress, data: `0x${ string }`) => {
 	const safeOwners = await getOwners(writeClient, safeAddress)
 	if (safeOwners.length === 0) throw new Error(`Safe has no owners!`)
 	// this signatrue is used when the transaction signer is one of the signers
