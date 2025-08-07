@@ -176,7 +176,7 @@ describe('Contract Test Suite', () => {
 		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + oneTimeDeposit, 'we got rep back')
 	})
 
-	test('Can withdraw a Rep balance out of sync with standard deposits', async () => {
+	test('Cannot withdraw a Rep balance out of sync with standard deposits before close', async () => {
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
@@ -192,19 +192,21 @@ describe('Contract Test Suite', () => {
 
 		// deposit small amounts
 		const clientDeposit = 1000n * 10n ** 18n
-		const client2Deposit = clientDeposit * 2n
+		const client2Deposit = 300000n * 10n ** 18n
 		await deposit(client, clientDeposit)
 		await deposit(client2, client2Deposit)
 
 		// Micah sends additional REP to contract
 		await transferErc20Token(micahClient, repV2TokenAddress, contract, clientDeposit * 3n)
 
-		// withdraw from the recipient accounts and get proportional balance
+		// withdraw from the recipient account and get 1:1 balance to avoid deposit/withdraw attack
 		await withdraw(client)
-		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep + clientDeposit, 'we got rep back plus the additional REP Micah added')
+		assert.strictEqual(await getErc20TokenBalance(client, repV2TokenAddress, client.account.address), startingRep, 'we got rep back')
 
-		await withdraw(client2)
-		assert.strictEqual(await getErc20TokenBalance(client2, repV2TokenAddress, client2.account.address), startingRep + client2Deposit, 'we got rep back plus the additional REP Micah added')
+		const micahAddress = addressString(MICAH)
+		const micahBalance = await getErc20TokenBalance(micahClient, repV2TokenAddress, micahAddress)
+		await micahWithdraw(micahClient)
+		assert.strictEqual(await getErc20TokenBalance(micahClient, repV2TokenAddress, micahAddress), micahBalance + client2Deposit + clientDeposit * 3n, 'micah got rep back')
 	})
 
 	test('Can withdraw a Rep balance out of sync with standard deposits after close', async () => {
