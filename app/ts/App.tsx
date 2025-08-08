@@ -356,7 +356,10 @@ export function App() {
 				<div class = 'form-group highlight'>
 					<h3>Fund AugurV2 Fork</h3>
 					<p>
-						Deposit REP to { <EtherScanAddress name = { 'REP Crowdsourcer' } address = { useComputed(() => getRepCrowdSourcerAddress()) }/> } that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost. Please find Micah's more detailed explanation at <a href = '/blog.html' target = '_blank' rel = 'noopener noreferrer'>Go Fund Micah Announcement</a>.
+						Deposit REP to REP Crowdsourcer that Micah can withdraw from once <b>{ bigintToDecimalStringWithUnknown(requiredBalance.deepValue, 18n, 2) } REP</b> is reached. Micah commits (via a gentleman's agreement) to use all of the REP to fund an Augur v2 fork. The REP will be lost. Please find Micah's more detailed explanation at <a style = { { display: 'inline-flex', alignItems: 'flex-end' } } target = '_blank' rel = 'noopener noreferrer' href = { './blog.html' }>
+							Go Fund Micah Announcement
+							<svg class = 'external-link' width = '24px' height = '24px' viewBox = '0 0 24 24'><g stroke-width = '2.1' fill = 'none' stroke-linecap = 'round' stroke-linejoin = 'round'><polyline points = '17 13.5 17 19.5 5 19.5 5 7.5 11 7.5'></polyline><path d = 'M14,4.5 L20,4.5 L20,10.5 M20,4.5 L11,13.5'></path></g></svg>
+						</a>.
 						<br/><br/>
 						If you are able to exploit this contract and successfully withdraw its funds, you are requested to return <b>90%</b> of the recovered assets to <EtherScanAddress name = { 'Micah' } address = { safeAddress.value }/>. You may retain the remaining <b>10%</b> as a bounty for your efforts. By interacting with this contract, users acknowledge and agree to these terms.
 						<br/><br/>
