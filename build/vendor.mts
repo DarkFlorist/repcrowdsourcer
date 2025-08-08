@@ -1,15 +1,16 @@
 import * as path from 'path'
-import * as url from 'url';
+import * as url from 'url'
 import { promises as fs } from 'fs'
 import { FileType, recursiveDirectoryCopy } from '@zoltu/file-copier'
 import * as funtypes from 'funtypes'
+import esbuild from 'esbuild'
 
 const directoryOfThisFile = path.dirname(url.fileURLToPath(import.meta.url))
 const VENDOR_OUTPUT_PATH = path.join(directoryOfThisFile, '..', 'app', 'vendor')
 const MODULES_ROOT_PATH = path.join(directoryOfThisFile, '..', 'node_modules')
 const INDEX_HTML_PATH = path.join(directoryOfThisFile, '..', 'app', 'index.html')
-const AUGUR_CONSTANT_PRODUCT_MARKET_CONTRACT_PATH_APP = path.join(directoryOfThisFile, '..', 'app', 'ts', 'VendoredRepCrowdsourcer.ts')
-const AUGUR_CONSTANT_PRODUCT_MARKET_CONTRACT_PATH_SOLIDITY = path.join(directoryOfThisFile, '..', 'solidity', 'ts', 'abi', 'VendoredRepCrowdsourcer.ts')
+const CONTRACT_PATH_APP = path.join(directoryOfThisFile, '..', 'app', 'ts', 'VendoredRepCrowdsourcer.ts')
+const CONTRACT_PATH_SOLIDITY = path.join(directoryOfThisFile, '..', 'solidity', 'ts', 'abi', 'VendoredRepCrowdsourcer.ts')
 
 type CompileResult = funtypes.Static<typeof CompileResult>
 const CompileResult = funtypes.ReadonlyObject({
@@ -54,6 +55,31 @@ const dependencyPaths: Dependency[] = [
 	{ packageName: 'ox', subfolderToVendor: '_esm', mainEntrypointFile: 'index.js', alternateEntrypoints: { 'BlockOverrides': 'core/BlockOverrides.js', 'AbiConstructor': 'core/AbiConstructor.js' , 'AbiFunction': 'core/AbiFunction.js' } },
 ]
 
+async function bundleViem() {
+	const viemSrcDir = path.join(MODULES_ROOT_PATH, 'viem', '_esm')
+	const viemTmpOut = path.join(directoryOfThisFile, 'tmp-viem-bundle')
+
+	await esbuild.build({
+		entryPoints: {
+			'index': path.join(viemSrcDir, 'index.js'),
+			'chains/index': path.join(viemSrcDir, 'chains', 'index.js'),
+			'window/index': path.join(viemSrcDir, 'window', 'index.js'),
+			'actions/index': path.join(viemSrcDir, 'actions', 'index.js')
+		},
+		format: 'esm',
+		outdir: viemTmpOut,
+		bundle: true,
+		platform: 'browser',
+		sourcemap: true,
+		target: 'esnext'
+	})
+
+	await fs.rm(viemSrcDir, { recursive: true, force: true })
+	await fs.mkdir(viemSrcDir, { recursive: true })
+	await recursiveDirectoryCopy(viemTmpOut, viemSrcDir, async () => true)
+	await fs.rm(viemTmpOut, { recursive: true, force: true })
+}
+
 async function vendorDependencies() {
 	async function inclusionPredicate(path: string, fileType: FileType) {
 		if (path.endsWith('.js')) return true
@@ -97,8 +123,8 @@ const copySolidityContractArtifact = async () => {
 	if (new Set(contracts.map((x) => x.contractName)).size !== contracts.length) throw new Error('duplicated contract name!')
 
 	const typescriptString = contracts.map((contract) => `export const ${ contract.contractName } = ${ JSON.stringify(contract.contractData, null, 4) } as const`).join('\r\n')
-	await fs.writeFile(AUGUR_CONSTANT_PRODUCT_MARKET_CONTRACT_PATH_APP, typescriptString)
-	await fs.writeFile(AUGUR_CONSTANT_PRODUCT_MARKET_CONTRACT_PATH_SOLIDITY, typescriptString)
+	await fs.writeFile(CONTRACT_PATH_APP, typescriptString)
+	await fs.writeFile(CONTRACT_PATH_SOLIDITY, typescriptString)
 }
 
 // rewrite the source paths in sourcemap files so they show up in the debugger in a reasonable location and if two source maps refer to the same (relative) path, we end up with them distinguished in the browser debugger
@@ -117,6 +143,7 @@ async function rewriteSourceMapSourcePath(packageName: string, sourcePath: strin
 }
 
 const vendor = async () => {
+	await bundleViem()
 	await vendorDependencies()
 	await copySolidityContractArtifact()
 }

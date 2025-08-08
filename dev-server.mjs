@@ -15,16 +15,16 @@ server.on('request', async (request, response) => {
 			response.writeHead(200, { 'Content-Type': mimeType } )
 		}
 		response.write(fileContents)
-		response.end('OK')
+		response.end()
 	} catch (error) {
 		if (error.code === 'ENOENT') {
 			console.log(`404: ${ request.url }`)
 			response.writeHead(404)
-			response.end('Not Found')
+			response.end()
 		} else {
 			console.log(`500: ${ request.url }\n${ error.message }`)
 			response.writeHead(500)
-			response.end('Internal Server Error')
+			response.end()
 		}
 	}
 })
