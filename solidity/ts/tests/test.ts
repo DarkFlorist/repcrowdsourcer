@@ -1,6 +1,6 @@
 import { describe, beforeEach, test } from 'node:test'
 import { getMockedEthSimulateWindowEthereum, MockWindowEthereum } from '../testsuite/simulator/MockWindowEthereum.js'
-import { createWriteClient } from '../testsuite/simulator/utils/viem.js'
+import { createWriteClient, WriteClient } from '../testsuite/simulator/utils/viem.js'
 import { DAI, MICAH, repV2TokenAddress, TEST_ADDRESSES } from '../testsuite/simulator/utils/constants.js'
 import { mintDAI, setupTestAccounts } from '../testsuite/simulator/utils/utilities.js'
 import assert from 'node:assert'
@@ -8,6 +8,12 @@ import { deployRepCrowdsourcer, getRepCrowdSourcerAddress, isRepCrowdSourcerDepl
 import { approveErc20Token, getErc20TokenBalance, transferErc20Token } from '../testsuite/simulator/utils/erc20.js'
 import { deposit, getBalance, getdepositsEnabled, massWithdraw, micahCloseContract, micahSetWithdrawsEnabled, micahWithdraw, recoverERC20, transfer, withdraw } from '../testsuite/simulator/utils/callsAndWrites.js'
 import { addressString } from '../testsuite/simulator/utils/bigint.js'
+
+const ensureDeployed = async (client: WriteClient) => {
+	if (await isRepCrowdSourcerDeployed(client)) return
+	await deployRepCrowdsourcer(client)
+	if (!await isRepCrowdSourcerDeployed(client)) throw new Error('Failed to deploy!')
+}
 
 describe('Contract Test Suite', () => {
 	let mockWindow: MockWindowEthereum
@@ -18,7 +24,7 @@ describe('Contract Test Suite', () => {
 
 	test('Can Deploy Contract', async () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const isDeployed = await isRepCrowdSourcerDeployed(client)
 		assert.ok(isDeployed, 'Not Deployed!')
 		assert.strictEqual(await getdepositsEnabled(client), true)
@@ -28,9 +34,7 @@ describe('Contract Test Suite', () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 
-		await deployRepCrowdsourcer(client)
-		const isDeployed = await isRepCrowdSourcerDeployed(client)
-		assert.ok(isDeployed, 'Not Deployed!')
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const plenty = 1000000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
@@ -78,9 +82,7 @@ describe('Contract Test Suite', () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 
-		await deployRepCrowdsourcer(client)
-		const isDeployed = await isRepCrowdSourcerDeployed(client)
-		assert.ok(isDeployed, 'Not Deployed!')
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const plenty = 1000000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
@@ -114,7 +116,7 @@ describe('Contract Test Suite', () => {
 	test('Can recover ERC20', async () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const balance = 1000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
@@ -142,7 +144,7 @@ describe('Contract Test Suite', () => {
 
 	test('Cannot send ETH to contract', async () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		await assert.rejects(client.sendTransaction({ to: contract, value: 100n }))
 	})
@@ -150,7 +152,7 @@ describe('Contract Test Suite', () => {
 	test('Can ERC20 transfer balance in contract', async () => {
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const plenty = 1000000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
@@ -180,7 +182,7 @@ describe('Contract Test Suite', () => {
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const plenty = 1000000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
@@ -211,7 +213,7 @@ describe('Contract Test Suite', () => {
 		const micahClient = createWriteClient(mockWindow, MICAH, 0)
 		const client = createWriteClient(mockWindow, TEST_ADDRESSES[0], 0)
 		const client2 = createWriteClient(mockWindow, TEST_ADDRESSES[1], 0)
-		await deployRepCrowdsourcer(client)
+		await ensureDeployed(client)
 		const contract = getRepCrowdSourcerAddress()
 		const plenty = 1000000000n * 10n ** 18n
 		const ourAddress = addressString(TEST_ADDRESSES[0])
