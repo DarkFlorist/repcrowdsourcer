@@ -75,6 +75,7 @@ async function bundleViem() {
 	})
 
 	await fs.rm(viemSrcDir, { recursive: true, force: true })
+	await fs.mkdir(viemSrcDir, { recursive: true })
 	await recursiveDirectoryCopy(viemTmpOut, viemSrcDir, async () => true)
 	await fs.rm(viemTmpOut, { recursive: true, force: true })
 }
