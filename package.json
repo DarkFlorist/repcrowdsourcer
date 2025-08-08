@@ -7,8 +7,9 @@
 		"@types/node": "22.13.10",
 		"@zoltu/file-copier": "3.0.0",
 		"better-typescript-lib": "2.11.0",
-		"typescript": "5.8.2",
-		"funtypes": "5.1.1"
+		"esbuild": "0.25.8",
+		"funtypes": "5.1.1",
+		"typescript": "5.8.2"
 	},
 	"dependencies": {
 		"@preact/signals": "2.0.1",
